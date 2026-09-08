@@ -1,0 +1,633 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Section from '../components/Section.astro';
+import Button from '../components/Button.astro';
+import BusinessConcept from '../components/BusinessConceptRing.astro';
+import CaseCard from '../components/CaseCard.astro';
+import ClientLogos from '../components/ClientLogos.astro';
+import DiagnosisCta from '../components/DiagnosisCta.astro';
+import { Image } from 'astro:assets';
+
+/* キービジュアル。差し替えるときはこの1行のファイル名を変える。
+   元画像は白背景なので、mix-blend-mode: multiply で背景のブランドグラデーションに馴染ませている。 */
+import heroImage from '../assets/hero/hero-f.png';
+import { SITE_TITLE, DIAGNOSIS_URL, DIAGNOSIS_LABEL } from '../consts';
+
+const cases = (await getCollection('cases', ({ data }) => !data.draft)).sort(
+  (a, b) => a.data.order - b.data.order
+);
+
+/* 課題提起。business-definition.md 6章の3パターンに対応する */
+const patterns = [
+  {
+    key: 'A',
+    heading: '創業者や初期メンバーの手作業が、成長速度に追いつかない',
+    body: '顧客対応を属人的に回してきたが、顧客数の増加にチームが追いつかなくなった。仕組みをつくる時間そのものが取れない。',
+    pitch: '一緒に仕組みを作ります',
+  },
+  {
+    key: 'B',
+    heading: 'CSプロセスはあるが、古くて機能していない',
+    body: '長期間、設計を見直していない。プロダクトが増えてもCSは当時のまま。事業の変化で綻びが表に出てきた。',
+    pitch: '何が壊れているかを見つけて直します',
+  },
+  {
+    key: 'C',
+    heading: '継続型の顧客関係に、はじめて向き合う',
+    body: '買い切りやプロジェクト型の経験はあるが、サブスクリプションは初めて。関係を育てるプロセスがゼロの状態。',
+    pitch: '初めての型を、外から持ち込みます',
+  },
+];
+
+/* 選ばれる理由。business-definition.md 9章の対比構造をそのまま使う */
+const reasons = [
+  {
+    label: 'Day 0',
+    title: '「把握の期間」ではなく「実行の期間」から始まる',
+    others: 'プロジェクト開始後に業界理解を始めるため、顧客が一から教える時間が発生する',
+    suncs: '提案段階で業界・事業・サービスを徹底学習し、「まずは全体像を整理しました」から始まる',
+  },
+  {
+    label: '実践',
+    title: '「知っている」で終わらせず「できている」に変える',
+    others: '分析レポートの提出で終わる',
+    suncs: 'ロープレや商談同席を通じて実際に動ける状態にし、社内でPDCAが回る状態を目指す',
+  },
+  {
+    label: '仕組み',
+    title: '「知っている人」ではなく「仕組み」に依存させる',
+    others: '担当者が変わると体制が崩れる',
+    suncs: '誰でも・いつでも・同じ質で動ける型を構築し、型を回せる人材を育成する',
+  },
+];
+---
+
+<BaseLayout
+  title={SITE_TITLE}
+  description="限界を決めない挑戦に、期待以上で応える。SUNCSは国内のカスタマーサクセス支援と、海外展開の意思決定支援を行っています。事業の成長が止まる場所に外から入り、自走できる状態まで持っていきます。"
+>
+  {/* 2. キービジュアル */}
+  <section class="hero">
+    {/* キービジュアル。白背景の不透明画像を multiply でブランドグラデーションに乗せ、
+        マスクで文字側へ向かって消していくことで、コピーの可読性を保つ。 */}
+    <div class="hero__media" aria-hidden="true">
+      <Image
+        src={heroImage}
+        alt=""
+        widths={[900, 1400, 2000, 2800]}
+        sizes="(min-width: 1024px) 70vw, 130vw"
+        loading="eager"
+        fetchpriority="high"
+      />
+    </div>
+
+    <div class="hero__inner container">
+      <div class="hero__copy">
+        {/* 理念コピー。VALUE「Accept no limits」に由来し、全事業に共通する。
+            h1 に和文も含めることで、検索・AI経由の流入に必要な語をトップページに残す。 */}
+        <h1 class="hero__title">
+          <span class="hero__title-en">
+            <span class="hero__title-line">Beyond Limits.</span>
+            <span class="hero__title-line">Beyond Expectations.</span>
+          </span>
+          <span class="hero__title-ja">限界を決めない挑戦に、期待以上で応える。</span>
+        </h1>
+        <p class="hero__lead">
+          既存顧客との関係を深め、次の市場へ。<br />
+          売上が積み上がる仕組みを、再現できる形で企業に残します。
+        </p>
+        <div class="hero__actions">
+          <Button href={DIAGNOSIS_URL} variant="primary" size="lg">{DIAGNOSIS_LABEL}</Button>
+          <Button href="#services" variant="secondary" size="lg">サービスを見る</Button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  {/* 3. 導入企業ロゴ。キービジュアルに少し重ねた帯として流す */}
+  <div class="clients-band">
+    <p class="clients-band__label">ご支援させていただいた企業</p>
+    <ClientLogos />
+  </div>
+
+  {/* 4. ビジネスコンセプト */}
+  <Section
+    label="CONCEPT"
+    title="人×AIで、最高のおもてなしを。"
+    lead="企業の成長を、CustomerCoreとGlobalCoreの両輪で実現します。"
+    align="center"
+  >
+    <BusinessConcept />
+  </Section>
+
+  {/* 5. 課題提起 */}
+  <Section
+    label="ISSUES"
+    title="なぜ、カスタマーサクセスは機能しないのか"
+    lead="うまくいかない理由は会社ごとに違います。SUNCSは3つの型に分けて捉え、それぞれ別の入り方をします。当てはまるものはありますか。"
+    tone="muted"
+  >
+    <ul class="patterns">
+      {
+        patterns.map((pattern) => (
+          <li class="pattern">
+            <p class="pattern__key">PATTERN {pattern.key}</p>
+            <h3 class="pattern__heading">{pattern.heading}</h3>
+            <p class="pattern__body">{pattern.body}</p>
+            <p class="pattern__pitch">{pattern.pitch}</p>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="patterns__cta">
+      <Button href={DIAGNOSIS_URL} variant="ghost">
+        50問でCSの実力を可視化する →
+      </Button>
+    </p>
+  </Section>
+
+  {/* 6. 選ばれる理由 */}
+  <Section label="WHY SUNCS" title="選ばれる理由">
+    <ul class="reasons">
+      {
+        reasons.map((reason) => (
+          <li class="reason">
+            <p class="reason__label">{reason.label}</p>
+            <h3 class="reason__title">{reason.title}</h3>
+            <div class="reason__compare">
+              <div class="reason__col reason__col--others">
+                <p class="reason__col-head">一般的なコンサルティング</p>
+                <p>{reason.others}</p>
+              </div>
+              <div class="reason__col reason__col--suncs">
+                <p class="reason__col-head">SUNCS</p>
+                <p>{reason.suncs}</p>
+              </div>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  {/* 7. サービス */}
+  <Section id="services" label="SERVICE" title="サービス" tone="muted">
+    <div class="services">
+      <article class="service">
+        <h3 class="service__name">CustomerCore</h3>
+        <p class="service__target">国内B2B SaaS・サブスクリプション事業者向け</p>
+        <p class="service__body">
+          カスタマーサクセスの戦略立案から施策実行、育成までを一貫して支援します。
+          支援終了後も自社でPDCAが回る仕組みを残すことがゴールです。
+        </p>
+        <ul class="service__items">
+          <li>CS設計アシスト — 戦略立案から業務最適化まで</li>
+          <li>CS業務アシスト — 施策の実行・改善・仕組み化</li>
+          <li>CS育成アシスト — 研修設計から実践トレーニングまで</li>
+        </ul>
+        <Button href="/customercore" variant="ghost">CustomerCore の詳細 →</Button>
+      </article>
+
+      <article class="service">
+        <h3 class="service__name">GlobalCore</h3>
+        <p class="service__target">海外展開を検討する日本企業向け</p>
+        <p class="service__body">
+          「展開する前提」ではなく「展開できる可能性があるか」の検証から入ります。
+          デスクリサーチと現地渡航で、投資判断に必要な材料を揃えます。
+        </p>
+        <ul class="service__items">
+          <li>進出可否の判断材料をつくる市場調査</li>
+          <li>現地パートナー・KOL・投資家の開拓</li>
+          <li>英語でのピッチ資料作成、商談同席</li>
+          <li>法規制・制度面の一次調査と論点整理</li>
+        </ul>
+        <Button href="/globalcore" variant="ghost">GlobalCore の詳細 →</Button>
+      </article>
+    </div>
+
+    <aside class="playbook">
+      <h3 class="playbook__name">Playbook<span class="playbook__tag">開発中</span></h3>
+      <p>
+        SUNCSが蓄積したカスタマーサクセスの型を、業務フローとして実装したシステムです。
+        現在、米国企業と共同開発を進めています。
+      </p>
+    </aside>
+  </Section>
+
+  {/* 8. 導入事例 */}
+  <Section label="CASE" title="導入事例">
+    <ul class="cases">
+      {cases.map((entry) => <li><CaseCard entry={entry} /></li>)}
+    </ul>
+    <p class="cases__more">
+      <Button href="/cases" variant="secondary">すべての事例を見る</Button>
+    </p>
+    <p class="cases__note">
+      ※特定の顧客における導入前後の比較値。指標の定義・計測期間は事例ごとに異なります。
+      すべての組織で同様の成果を保証するものではありません。
+    </p>
+  </Section>
+
+  {/* 9. 診断への誘導 */}
+  <DiagnosisCta />
+
+  {/* 11. 会社紹介（10. メディア最新記事は Phase 3 で追加） */}
+  <Section label="COMPANY" title="顧客の成長と笑顔を生み出す太陽になる">
+    <p class="company__lead">
+      SUNCSは、CLF PARTNERSグループの一員として、カスタマーサクセス支援と海外展開支援を手がけています。
+      「人×AIで最高のおもてなしを実現する」ことを目指しています。
+    </p>
+    <Button href="/company" variant="secondary">会社概要を見る</Button>
+  </Section>
+</BaseLayout>
+
+<style>
+  /* ---- キービジュアル ---- */
+
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding-block: var(--space-section);
+    /* イラストを multiply で重ねるため、下地は淡いwash。
+       -soft だと色が乗りすぎて元画像の白が濁る。 */
+    background: var(--gradient-brand-wash);
+  }
+
+  /* SP: イラストを下端に敷き、その上に文字を重ねる。
+     横長の絵なので object-fit: cover にすると拡大されすぎるため、
+     元の縦横比のまま幅いっぱいに置き、上へ向かってマスクで消す。 */
+  .hero {
+    display: grid;
+    /* 下の余白は文字側で持つ。ここで空けるとイラストと文字が離れてしまう */
+    padding-block-end: 0;
+  }
+
+  .hero__inner {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    /* イラストの高さは約56vw。文字がその上半分に重なるよう余白を確保する */
+    padding-bottom: 18vw;
+  }
+
+  .hero__media {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+    /* グラデーションで文字側だけ徐々に消し、イラスト側はくっきり見せる */
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 42%);
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 42%);
+  }
+
+  .hero__media :global(img) {
+    width: 100%;
+    height: auto;
+    /* 元画像は青紫が強いため、彩度を落として色相をわずかに暖色側へ寄せ、
+       ブランドの落ち着いた紺・ピンク・オレンジになじませる。
+       寄せすぎるとオレンジが濁って重く見えるため、変化量は控えめにする。
+       multiply で沈むぶんは明度で軽く戻す。 */
+    filter: saturate(0.85) hue-rotate(-4deg) brightness(1.06);
+  }
+
+  .hero__title {
+    display: grid;
+    gap: var(--space-5);
+    animation: hero-in 0.8s var(--easing-standard) backwards;
+  }
+
+  /* 欧文の理念コピー。和文より一段大きく、字間を締めて据える。
+     "Beyond Expectations." を途中で折り返さないよう、1行ずつ nowrap にしたうえで
+     画面幅に応じて文字サイズを詰める。最小値は 320px 幅でも1行に収まる大きさ。 */
+  /* 文字色はブランドの紺。背景の淡いラベンダー〜ピーチと同系でなじみつつ、
+     墨色より色味がついて見える。背景とのコントラストは約6:1でAA基準を満たす。
+     グラデーション文字は背景のグラデーションと干渉するため使わない。 */
+  .hero__title-en {
+    display: grid;
+    font-family: var(--font-display);
+    font-size: clamp(1.625rem, 0.95rem + 2.9vw, 3.75rem);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--color-primary-strong);
+  }
+
+  .hero__title-line {
+    white-space: nowrap;
+  }
+
+  .hero__title-ja {
+    font-size: var(--text-xl);
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-snug);
+    letter-spacing: var(--tracking-normal);
+    text-wrap: balance;
+  }
+
+  .hero__lead {
+    margin-top: var(--space-6);
+    max-width: 36em;
+    font-size: var(--text-lg);
+    animation: hero-in 0.8s var(--easing-standard) 0.12s backwards;
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    margin-top: var(--space-10);
+    animation: hero-in 0.8s var(--easing-standard) 0.24s backwards;
+  }
+
+  @keyframes hero-in {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero__title,
+    .hero__lead,
+    .hero__actions {
+      animation: none;
+    }
+  }
+
+  /* ---- 導入企業ロゴの帯 ---- */
+
+  .clients-band {
+    position: relative;
+    z-index: 2;
+    /* キービジュアルに重ねる */
+    margin-top: calc(var(--space-12) * -1);
+    margin-inline: var(--container-gutter);
+    max-width: var(--container-max);
+    padding: var(--space-5) 0 var(--space-6);
+    background: var(--color-surface);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+  }
+
+  @media (min-width: 1264px) {
+    .clients-band {
+      margin-inline: auto;
+    }
+  }
+
+  .clients-band__label {
+    margin-bottom: var(--space-4);
+    padding-inline: var(--container-gutter);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-text-muted);
+    text-align: center;
+  }
+
+  /* ---- 課題提起 ---- */
+
+  .patterns {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .pattern {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+  }
+
+  .pattern__key {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-primary);
+  }
+
+  .pattern__heading {
+    font-size: var(--text-xl);
+    line-height: var(--leading-snug);
+  }
+
+  .pattern__body {
+    flex-grow: 1;
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .pattern__pitch {
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border);
+    font-weight: var(--weight-bold);
+    color: var(--color-primary);
+  }
+
+  .patterns__cta {
+    margin-top: var(--space-10);
+  }
+
+  /* ---- 選ばれる理由 ---- */
+
+  .reasons {
+    display: grid;
+    gap: var(--space-12);
+  }
+
+  .reason__label {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-accent-strong);
+  }
+
+  .reason__title {
+    margin-top: var(--space-2);
+    font-size: var(--text-2xl);
+  }
+
+  .reason__compare {
+    display: grid;
+    gap: var(--space-4);
+    margin-top: var(--space-6);
+  }
+
+  .reason__col {
+    padding: var(--space-5);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+  }
+
+  .reason__col--others {
+    background: var(--color-surface-muted);
+    color: var(--color-text-muted);
+  }
+
+  .reason__col--suncs {
+    background: var(--color-primary-subtle);
+  }
+
+  .reason__col-head {
+    margin-bottom: var(--space-2);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-wide);
+  }
+
+  .reason__col--suncs .reason__col-head {
+    color: var(--color-primary);
+  }
+
+  /* ---- サービス ---- */
+
+  .services {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .service {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-8);
+    background: var(--color-surface);
+    border-radius: var(--radius-xl);
+  }
+
+  .service__name {
+    font-size: var(--text-3xl);
+  }
+
+  .service__target {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    color: var(--color-primary);
+  }
+
+  .service__items {
+    display: grid;
+    gap: var(--space-2);
+    flex-grow: 1;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .playbook {
+    margin-top: var(--space-6);
+    padding: var(--space-6);
+    border: 1px dashed var(--color-border-strong);
+    border-radius: var(--radius-lg);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .playbook__name {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-2);
+    font-size: var(--text-lg);
+    color: var(--color-text);
+  }
+
+  .playbook__tag {
+    padding: 2px var(--space-2);
+    background: var(--color-surface-muted);
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+
+  /* ---- 導入事例 ---- */
+
+  .cases {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .cases__more {
+    margin-top: var(--space-10);
+  }
+
+  .cases__note {
+    margin-top: var(--space-6);
+    font-size: var(--text-xs);
+    line-height: var(--leading-normal);
+    color: var(--color-text-muted);
+  }
+
+  /* ---- 会社紹介 ---- */
+
+  .company__lead {
+    max-width: 42em;
+    margin-bottom: var(--space-8);
+  }
+
+  /* ---- PC ---- */
+
+  @media (min-width: 768px) {
+    .patterns,
+    .services,
+    .cases {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .reason__compare {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (min-width: 880px) {
+    /* PC: 全面に敷き、コピー側へ向かってマスクで消す。
+       ヘッダーのナビが横並びになる幅（880px）と揃える。ここが1024pxのままだと
+       880〜1023pxの間でナビは横並びなのにキービジュだけSP用の縦マスクになり、
+       文字とイラストが重なって見づらくなる。 */
+    .hero {
+      display: grid;
+      align-items: center;
+      /* 人物の腕の先まで入る高さ。これより低いと頭上が切れる */
+      min-height: min(76vh, 620px);
+    }
+
+    .hero {
+      padding-block-end: var(--space-section);
+    }
+
+    .hero__inner {
+      padding-bottom: 0;
+    }
+
+    .hero__media {
+      position: absolute;
+      inset: 0;
+      -webkit-mask-image: linear-gradient(100deg, transparent 30%, #000 64%);
+      mask-image: linear-gradient(100deg, transparent 30%, #000 64%);
+    }
+
+    .hero__media :global(img) {
+      height: 100%;
+      object-fit: cover;
+      /* 縦を上寄りにして、指を差した手が切れないようにする */
+      object-position: 58% 26%;
+    }
+
+    .hero__copy {
+      max-width: 52%;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .patterns,
+    .cases {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>

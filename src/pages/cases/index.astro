@@ -1,0 +1,111 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import Section from '../../components/Section.astro';
+import CaseCard from '../../components/CaseCard.astro';
+import Button from '../../components/Button.astro';
+import keyVisual from '../../assets/hero/cases.png';
+import { DIAGNOSIS_URL, DIAGNOSIS_LABEL } from '../../consts';
+
+const cases = (await getCollection('cases', ({ data }) => !data.draft)).sort(
+  (a, b) => a.data.order - b.data.order
+);
+
+const hasMetrics = cases.some((entry) => (entry.data.metrics ?? []).length > 0);
+---
+
+<BaseLayout
+  title="導入事例"
+  description="SUNCSの支援実績。カスタマーサクセスの立ち上げ・仕組み化から、海外進出の可否検証まで。"
+  image="/og/cases.jpg"
+>
+  <PageHeader
+    label="CASE"
+    title="導入事例"
+    image={keyVisual}
+    imagePosition="50% 38%"
+    compact
+  />
+
+  <Section>
+    {
+      cases.length === 0 ? (
+        <p class="empty">公開中の事例はありません。</p>
+      ) : (
+        <ul class="cases" data-reveal-stagger>
+          {cases.map((entry) => (
+            <li>
+              <CaseCard entry={entry} />
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    {
+      hasMetrics && (
+        <p class="note">
+          ※特定の顧客における導入前後の比較値。指標の定義・計測期間は事例ごとに異なります。
+          すべての組織で同様の成果を保証するものではありません。
+        </p>
+      )
+    }
+  </Section>
+
+  <Section tone="gradient" align="center">
+    <h2 class="cta__title">自社はどのパターンに当てはまるか</h2>
+    <p class="cta__lead">
+      50問の診断で、5フェーズ別のスコアと次に取るべき打ち手が分かります。
+    </p>
+    <div class="cta__actions">
+      <Button href={DIAGNOSIS_URL} variant="primary" size="lg">{DIAGNOSIS_LABEL}</Button>
+      <Button href="/contact" variant="secondary" size="lg">相談する</Button>
+    </div>
+  </Section>
+</BaseLayout>
+
+<style>
+  .cases {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .empty,
+  .note {
+    color: var(--color-text-muted);
+  }
+
+  .note {
+    margin-top: var(--space-8);
+    font-size: var(--text-xs);
+  }
+
+  .cta__title {
+    font-size: var(--text-4xl);
+  }
+
+  .cta__lead {
+    margin: var(--space-5) auto var(--space-10);
+    max-width: 34em;
+  }
+
+  .cta__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-4);
+  }
+
+  @media (min-width: 768px) {
+    .cases {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .cases {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>

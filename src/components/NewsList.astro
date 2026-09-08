@@ -1,0 +1,102 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { NEWS_CATEGORY_LABEL } from '../consts';
+
+interface Props {
+  items: CollectionEntry<'news'>[];
+}
+
+const { items } = Astro.props;
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat('ja-JP', { dateStyle: 'long', timeZone: 'Asia/Tokyo' }).format(date);
+---
+
+<ul class="news" data-reveal-stagger>
+  {
+    items.map((item) => {
+      const href = item.data.externalUrl ?? `/news/${item.id}`;
+      const isExternal = Boolean(item.data.externalUrl);
+      return (
+        <li class="news__item">
+          <a
+            class="news__link"
+            href={href}
+            target={isExternal ? '_blank' : undefined}
+            rel={isExternal ? 'noopener' : undefined}
+          >
+            <time class="news__date tabular" datetime={item.data.date.toISOString()}>
+              {formatDate(item.data.date)}
+            </time>
+            <span class="news__category">{NEWS_CATEGORY_LABEL[item.data.category]}</span>
+            <span class="news__title">
+              {item.data.title}
+              {isExternal && <span class="news__external" aria-label="外部サイトを開きます">↗</span>}
+            </span>
+          </a>
+        </li>
+      );
+    })
+  }
+</ul>
+
+<style>
+  .news {
+    border-top: 1px solid var(--color-border);
+  }
+
+  .news__item {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .news__link {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-2) var(--space-4);
+    padding-block: var(--space-5);
+    text-decoration: none;
+  }
+
+  .news__link:hover .news__title {
+    color: var(--color-primary);
+    text-decoration: underline;
+  }
+
+  .news__date {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .news__category {
+    justify-self: start;
+    padding: 2px var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    white-space: nowrap;
+  }
+
+  .news__title {
+    grid-column: 1 / -1;
+    font-weight: var(--weight-medium);
+  }
+
+  .news__external {
+    margin-left: 0.4em;
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  @media (min-width: 768px) {
+    .news__link {
+      grid-template-columns: 12em 10em 1fr;
+      align-items: baseline;
+      gap: var(--space-6);
+    }
+
+    .news__title {
+      grid-column: auto;
+    }
+  }
+</style>

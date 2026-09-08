@@ -1,0 +1,110 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { Image, getImage } from 'astro:assets';
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/Button.astro';
+import { NEWS_CATEGORY_LABEL, SITE_TITLE } from '../../consts';
+
+export const getStaticPaths = (async () => {
+  /* externalUrl があるものは外部へ飛ばすため、詳細ページを生成しない */
+  const news = await getCollection('news', ({ data }) => !data.draft && !data.externalUrl);
+  return news.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat('ja-JP', { dateStyle: 'long', timeZone: 'Asia/Tokyo' }).format(date);
+
+const ogImage = entry.data.eyecatch
+  ? (await getImage({ src: entry.data.eyecatch, width: 1200 })).src
+  : '/og/news.jpg';
+
+const newsArticleLd = {
+  '@context': 'https://schema.org',
+  '@type': 'NewsArticle',
+  headline: entry.data.title,
+  datePublished: entry.data.date.toISOString(),
+  image: new URL(ogImage, Astro.site).href,
+  author: { '@type': 'Organization', name: SITE_TITLE },
+  publisher: { '@type': 'Organization', name: SITE_TITLE },
+};
+---
+
+<BaseLayout title={entry.data.title} image={ogImage} type="article">
+  <script type="application/ld+json" set:html={JSON.stringify(newsArticleLd)} />
+  <article class="container container--narrow section">
+    <p class="meta">
+      <time class="tabular" datetime={entry.data.date.toISOString()}>
+        {formatDate(entry.data.date)}
+      </time>
+      <span class="meta__category">{NEWS_CATEGORY_LABEL[entry.data.category]}</span>
+    </p>
+
+    <h1 class="title">{entry.data.title}</h1>
+
+    {
+      entry.data.eyecatch && (
+        <figure class="eyecatch">
+          <Image
+            src={entry.data.eyecatch}
+            alt={entry.data.eyecatchAlt ?? ''}
+            width={1200}
+            loading="eager"
+          />
+        </figure>
+      )
+    }
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    <p class="back">
+      <Button href="/news" variant="secondary">お知らせ一覧へ</Button>
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .meta__category {
+    padding: 2px var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+  }
+
+  .title {
+    margin-top: var(--space-4);
+    font-size: var(--text-4xl);
+  }
+
+  .eyecatch {
+    margin-top: var(--space-10);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .eyecatch img {
+    width: 100%;
+    height: auto;
+  }
+
+  .prose {
+    margin-top: var(--space-10);
+  }
+
+  .back {
+    margin-top: var(--space-16);
+  }
+</style>

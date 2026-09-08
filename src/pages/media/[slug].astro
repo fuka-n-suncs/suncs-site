@@ -1,0 +1,201 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { Image, getImage } from 'astro:assets';
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/Button.astro';
+import { MEDIA_CATEGORY_LABEL, MEDIA_TYPE_LABEL, DIAGNOSIS_URL, DIAGNOSIS_LABEL, SITE_TITLE } from '../../consts';
+
+export const getStaticPaths = (async () => {
+  const articles = await getCollection('media', ({ data }) => !data.draft);
+  return articles.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props;
+const { title, summary, date, updated, category, type, downloadUrl, tags, eyecatch, eyecatchAlt } =
+  entry.data;
+const { Content } = await render(entry);
+
+const formatDate = (value: Date) =>
+  new Intl.DateTimeFormat('ja-JP', { dateStyle: 'long', timeZone: 'Asia/Tokyo' }).format(value);
+
+/* OGP画像。記事にeyecatchがあればそれを、なければメディア全体のデフォルトを使う */
+const ogImage = eyecatch ? (await getImage({ src: eyecatch, width: 1200 })).src : '/og/media.jpg';
+
+const articleLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: title,
+  description: summary,
+  datePublished: date.toISOString(),
+  dateModified: (updated ?? date).toISOString(),
+  image: new URL(ogImage, Astro.site).href,
+  author: { '@type': 'Organization', name: SITE_TITLE },
+  publisher: { '@type': 'Organization', name: SITE_TITLE },
+};
+---
+
+<BaseLayout title={title} description={summary} image={ogImage} type="article">
+  <script type="application/ld+json" set:html={JSON.stringify(articleLd)} />
+  <article class="container container--narrow section">
+    <p class="meta">
+      <span class="meta__type">{MEDIA_TYPE_LABEL[type]}</span>
+      <a class="meta__category" href={`/media/category/${category}`}>
+        {MEDIA_CATEGORY_LABEL[category]}
+      </a>
+      <time class="tabular" datetime={date.toISOString()}>{formatDate(date)}</time>
+      {
+        updated && (
+          <span class="meta__updated tabular">最終更新 {formatDate(updated)}</span>
+        )
+      }
+    </p>
+
+    <h1 class="title">{title}</h1>
+    <p class="summary">{summary}</p>
+
+    {
+      eyecatch && (
+        <figure class="eyecatch">
+          <Image src={eyecatch} alt={eyecatchAlt ?? ''} width={1200} loading="eager" />
+        </figure>
+      )
+    }
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    {
+      tags.length > 0 && (
+        <ul class="tags">
+          {tags.map((tag) => (
+            <li>#{tag}</li>
+          ))}
+        </ul>
+      )
+    }
+
+    {
+      type === 'material' && (
+        <aside class="material">
+          <h2 class="material__title">この資料をダウンロード</h2>
+          {downloadUrl ? (
+            <Button href={downloadUrl} variant="primary">資料をダウンロード</Button>
+          ) : (
+            <>
+              <p>
+                現在ダウンロードの準備中です。お急ぎの場合はお問い合わせよりご連絡ください。
+              </p>
+              <Button href="/contact" variant="primary">お問い合わせ</Button>
+            </>
+          )}
+        </aside>
+      )
+    }
+
+    <aside class="cta">
+      <p class="cta__text">
+        自社のカスタマーサクセスがどの状態にあるか、50問で可視化できます。
+      </p>
+      <Button href={DIAGNOSIS_URL} variant="primary">{DIAGNOSIS_LABEL}</Button>
+    </aside>
+
+    <p class="back">
+      <Button href="/media" variant="secondary">メディア一覧へ</Button>
+    </p>
+  </article>
+</BaseLayout>
+
+<style>
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .meta__type {
+    padding: 2px var(--space-3);
+    background: var(--color-primary-subtle);
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    color: var(--color-primary);
+  }
+
+  .meta__category {
+    padding: 2px var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    text-decoration: none;
+  }
+
+  .title {
+    margin-top: var(--space-4);
+    font-size: var(--text-4xl);
+  }
+
+  .summary {
+    margin-top: var(--space-5);
+    font-size: var(--text-lg);
+    color: var(--color-text-muted);
+  }
+
+  .eyecatch {
+    margin-top: var(--space-10);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .eyecatch img {
+    width: 100%;
+    height: auto;
+  }
+
+  .prose {
+    margin-top: var(--space-12);
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-10);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .material,
+  .cta {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-4);
+    margin-top: var(--space-12);
+    padding: var(--space-8);
+    border-radius: var(--radius-lg);
+  }
+
+  .material {
+    background: var(--color-accent-subtle);
+  }
+
+  .cta {
+    background: var(--gradient-brand-soft);
+  }
+
+  .material__title {
+    font-size: var(--text-xl);
+  }
+
+  .cta__text {
+    font-weight: var(--weight-bold);
+  }
+
+  .back {
+    margin-top: var(--space-16);
+  }
+</style>

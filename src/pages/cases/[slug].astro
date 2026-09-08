@@ -1,0 +1,84 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export const getStaticPaths = (async () => {
+  const cases = await getCollection('cases', ({ data }) => !data.draft);
+  return cases.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}) satisfies GetStaticPaths;
+
+const { entry } = Astro.props;
+const { title, industry, companySize, supportPeriod, client, metrics, phases } = entry.data;
+const { Content } = await render(entry);
+---
+
+<BaseLayout title={title} description={entry.data.summary} image="/og/cases.jpg" type="article">
+  <article class="container container--narrow section">
+    <p>{industry}</p>
+    <h1>{title}</h1>
+
+    <h2>企業概要</h2>
+    <dl>
+      {client && <><dt>企業名</dt><dd>{client}</dd></>}
+      <dt>事業内容</dt>
+      <dd>{industry}</dd>
+      <dt>会社規模</dt>
+      <dd>{companySize}</dd>
+      <dt>支援期間</dt>
+      <dd>{supportPeriod}</dd>
+    </dl>
+
+    {
+      metrics && metrics.length > 0 && (
+        <dl>
+          {metrics.map((m) => (
+            <>
+              <dt>{m.label}</dt>
+              <dd class="tabular">{m.value}</dd>
+            </>
+          ))}
+        </dl>
+      )
+    }
+
+    <Content />
+
+    {
+      phases && phases.length > 0 && (
+        <section>
+          <h2>実施内容</h2>
+          <ol>
+            {phases.map((phase) => (
+              <li data-highlight={phase.highlight ? '' : undefined}>
+                <h3>
+                  {phase.label}
+                  {phase.timing && <span>{phase.timing}</span>}
+                </h3>
+                {phase.note && <p>{phase.note}</p>}
+                <ul>
+                  {phase.items.map((item) => (
+                    <li>{item}</li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )
+    }
+
+    {
+      /* 数値を伴う事例には注釈を必ず付す（business-definition.md 8章） */
+      metrics && metrics.length > 0 && (
+        <p>
+          ※特定の顧客における導入前後の比較値。指標の定義・計測期間は事例ごとに異なる。
+          すべての組織で同様の成果を保証するものではない。
+        </p>
+      )
+    }
+  </article>
+</BaseLayout>

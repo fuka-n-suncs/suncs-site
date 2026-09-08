@@ -1,0 +1,115 @@
+---
+/**
+ * ロゴのシンボル（太陽）を抽象化した装飾。
+ * 画像ファイルではなくSVGで描いているため、拡大しても劣化せず色も動きもCSSで制御できる。
+ * 人物やプロダクトのイラストが入稿されたら、この装飾は背景側に退かせる想定。
+ */
+interface Props {
+  /** 光線の本数 */
+  rays?: number;
+  class?: string;
+}
+
+const { rays = 16, class: className } = Astro.props;
+
+const center = 100;
+const inner = 46;
+const outer = 78;
+
+const lines = Array.from({ length: rays }, (_, i) => {
+  const angle = (i / rays) * Math.PI * 2 - Math.PI / 2;
+  return {
+    x1: center + Math.cos(angle) * inner,
+    y1: center + Math.sin(angle) * inner,
+    x2: center + Math.cos(angle) * (i % 2 === 0 ? outer : outer - 12),
+    y2: center + Math.sin(angle) * (i % 2 === 0 ? outer : outer - 12),
+    delay: (i / rays).toFixed(3),
+  };
+});
+---
+
+<svg
+  class:list={['sunburst', className]}
+  viewBox="0 0 200 200"
+  fill="none"
+  aria-hidden="true"
+  focusable="false"
+>
+  <defs>
+    <linearGradient id="sunburst-grad" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="var(--brand-navy)"></stop>
+      <stop offset="50%" stop-color="var(--brand-pink)"></stop>
+      <stop offset="100%" stop-color="var(--brand-orange)"></stop>
+    </linearGradient>
+  </defs>
+
+  <g class="sunburst__rays" stroke="url(#sunburst-grad)" stroke-width="5" stroke-linecap="round">
+    {
+      lines.map((line) => (
+        <line
+          x1={line.x1.toFixed(2)}
+          y1={line.y1.toFixed(2)}
+          x2={line.x2.toFixed(2)}
+          y2={line.y2.toFixed(2)}
+          style={`--i:${line.delay}`}
+        />
+      ))
+    }
+  </g>
+
+  {/* 開いた円弧。ロゴの「閉じきらない太陽」の形を踏襲する */}
+  <circle
+    class="sunburst__ring"
+    cx="100"
+    cy="100"
+    r="34"
+    stroke="url(#sunburst-grad)"
+    stroke-width="6"
+    stroke-linecap="round"
+    stroke-dasharray="178 36"
+    transform="rotate(-38 100 100)"></circle>
+</svg>
+
+<style>
+  .sunburst {
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .sunburst__rays line {
+    transform-origin: 100px 100px;
+    animation: ray-pulse 6s var(--easing-standard) infinite;
+    animation-delay: calc(var(--i) * -6s);
+  }
+
+  .sunburst__ring {
+    transform-origin: 100px 100px;
+    animation: ring-spin 40s linear infinite;
+  }
+
+  @keyframes ray-pulse {
+    0%,
+    100% {
+      opacity: 0.55;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.06);
+    }
+  }
+
+  @keyframes ring-spin {
+    to {
+      transform: rotate(322deg);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sunburst__rays line,
+    .sunburst__ring {
+      animation: none;
+    }
+  }
+</style>

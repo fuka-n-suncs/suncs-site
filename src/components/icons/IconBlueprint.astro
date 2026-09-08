@@ -1,0 +1,26 @@
+---
+/** 「CS設計・立ち上げ」カテゴリのアイコン。製図用コンパス。 */
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<svg
+  class:list={['icon', className]}
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.6"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+  focusable="false"
+>
+  <circle cx="12" cy="5" r="1.5"></circle>
+  <path d="M12 6.5 7 19"></path>
+  <path d="M12 6.5 17 19"></path>
+  <path d="M9 19h6"></path>
+  <path d="M11.2 12.5h1.6"></path>
+</svg>

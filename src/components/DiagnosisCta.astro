@@ -1,0 +1,371 @@
+---
+import Button from './Button.astro';
+import { DIAGNOSIS_URL, DIAGNOSIS_LABEL } from '../consts';
+
+/**
+ * CS戦闘力診断への誘導ブロック。サイト全体の主導線。
+ *
+ * 記載内容はすべて実際の診断（cs-check.sun-cs.workers.dev）の仕様に合わせている。
+ * 設問数・所要時間・フェーズ名を変更する際は、必ず本体と突き合わせること。
+ */
+interface Props {
+  /** 見出し。ページごとに文脈を変えられる */
+  title?: string;
+  lead?: string;
+  /** true にすると背景を敷かず、セクション内に埋め込む形になる */
+  bare?: boolean;
+}
+
+const {
+  title = '自社のCSは、いまどのフェーズで止まっているのか',
+  lead = '50問に答えるだけで、カスタマーサクセスの実力が100点満点で可視化されます。費用はかかりません。',
+  bare = false,
+} = Astro.props;
+
+const specs = [
+  { value: '50', unit: '問', label: '設問数' },
+  { value: '5', unit: 'フェーズ', label: '診断軸' },
+  { value: '100', unit: '点満点', label: 'スコア' },
+  { value: '約8', unit: '分', label: '所要時間' },
+];
+
+const findings = [
+  'Align〜Expandの5フェーズ別スコアと、弱点の特定',
+  '顧客の成功と自社売上の連動を描けているかどうか',
+  '今すぐ取り組むべき優先改善フェーズとアクション',
+];
+
+/* レーダーチャートのサンプル値。実際の診断結果ではなく表示イメージ。 */
+const phases = [
+  { key: 'Align', label: '設計・合意', score: 70 },
+  { key: 'Onboard', label: '導入', score: 80 },
+  { key: 'Adopt', label: '活用・定着', score: 65 },
+  { key: 'Validate', label: '成果検証', score: 55 },
+  { key: 'Expand', label: '拡大', score: 60 },
+];
+
+const total = Math.round(phases.reduce((sum, p) => sum + p.score, 0) / phases.length);
+
+/* 5角形の頂点座標を算出（12時方向から時計回り） */
+const CENTER = 110;
+const RADIUS = 78;
+const point = (index: number, ratio: number) => {
+  const angle = (index / phases.length) * Math.PI * 2 - Math.PI / 2;
+  return [CENTER + Math.cos(angle) * RADIUS * ratio, CENTER + Math.sin(angle) * RADIUS * ratio];
+};
+const toPath = (ratios: number[]) =>
+  ratios.map((r, i) => point(i, r).map((n) => n.toFixed(1)).join(',')).join(' ');
+
+const gridRings = [0.25, 0.5, 0.75, 1];
+const scorePath = toPath(phases.map((p) => p.score / 100));
+---
+
+<section class:list={['dcta', bare && 'dcta--bare']}>
+  <div class="dcta__inner container">
+    <div class="dcta__copy">
+      <p class="dcta__label">CS戦闘力診断</p>
+      <h2 class="dcta__title">{title}</h2>
+      <p class="dcta__lead">{lead}</p>
+
+      <dl class="dcta__specs">
+        {
+          specs.map((spec) => (
+            <div class="dcta__spec">
+              <dt>{spec.label}</dt>
+              <dd class="tabular">
+                {spec.value}
+                <span class="dcta__unit">{spec.unit}</span>
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+
+      <ul class="dcta__findings">
+        {
+          findings.map((finding) => (
+            <li>
+              <span class="dcta__check" aria-hidden="true">✓</span>
+              {finding}
+            </li>
+          ))
+        }
+      </ul>
+
+      <Button href={DIAGNOSIS_URL} variant="primary" size="lg">{DIAGNOSIS_LABEL}</Button>
+    </div>
+
+    {/* 結果イメージ。実データではないことが分かるようバッジを付す */}
+    <figure class="dcta__preview">
+      <figcaption class="dcta__preview-head">
+        <span class="dcta__preview-title">診断結果レポート</span>
+        <span class="dcta__sample">サンプル</span>
+      </figcaption>
+
+      <div class="dcta__score">
+        <span class="dcta__score-label">総合スコア</span>
+        <span class="dcta__score-value tabular">
+          {total}<span class="dcta__score-max">/100</span>
+        </span>
+      </div>
+
+      <svg class="dcta__radar" viewBox="0 0 220 220" role="img" aria-label={`5フェーズ別スコアのサンプル。総合${total}点`}>
+        <defs>
+          <linearGradient id="dcta-fill" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="var(--brand-navy)" stop-opacity="0.55"></stop>
+            <stop offset="100%" stop-color="var(--brand-pink)" stop-opacity="0.55"></stop>
+          </linearGradient>
+        </defs>
+
+        {gridRings.map((ring) => (
+          <polygon
+            points={toPath(phases.map(() => ring))}
+            fill="none"
+            stroke="var(--color-border-strong)"
+            stroke-width="1"
+          />
+        ))}
+
+        {
+          phases.map((_, i) => {
+            const [x, y] = point(i, 1);
+            return (
+              <line
+                x1={CENTER}
+                y1={CENTER}
+                x2={x.toFixed(1)}
+                y2={y.toFixed(1)}
+                stroke="var(--color-border-strong)"
+                stroke-width="1"
+              />
+            );
+          })
+        }
+
+        <polygon
+          points={scorePath}
+          fill="url(#dcta-fill)"
+          stroke="var(--color-primary)"
+          stroke-width="2"
+          stroke-linejoin="round"
+        />
+
+        {
+          phases.map((p, i) => {
+            const [x, y] = point(i, p.score / 100);
+            return <circle cx={x.toFixed(1)} cy={y.toFixed(1)} r="3.5" fill="var(--color-primary)" />;
+          })
+        }
+      </svg>
+
+      <ul class="dcta__phases">
+        {
+          phases.map((p) => (
+            <li class="dcta__phase">
+              <span class="dcta__phase-name">
+                <span class="dcta__phase-en">{p.key}</span>
+                <span class="dcta__phase-ja">{p.label}</span>
+              </span>
+              <span class="dcta__phase-score tabular">{p.score}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .dcta {
+    padding-block: var(--space-section);
+    background: var(--gradient-brand-soft);
+  }
+
+  .dcta--bare {
+    padding-block: 0;
+    background: none;
+  }
+
+  .dcta__inner {
+    display: grid;
+    gap: var(--space-12);
+    align-items: center;
+  }
+
+  .dcta__label {
+    margin-bottom: var(--space-3);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-primary);
+  }
+
+  .dcta__title {
+    font-size: var(--text-4xl);
+    text-wrap: balance;
+  }
+
+  .dcta__lead {
+    margin-top: var(--space-5);
+    max-width: 34em;
+  }
+
+  /* 診断の規模が一目で伝わる数値 */
+  .dcta__specs {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+    margin-block: var(--space-8);
+    padding: var(--space-5);
+    background: rgb(255 255 255 / 0.66);
+    border-radius: var(--radius-lg);
+  }
+
+  .dcta__spec dt {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+
+  .dcta__spec dd {
+    font-size: var(--text-3xl);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-none);
+    color: var(--color-primary);
+  }
+
+  .dcta__unit {
+    margin-left: 0.1em;
+    font-size: var(--text-sm);
+  }
+
+  .dcta__findings {
+    display: grid;
+    gap: var(--space-3);
+    margin-bottom: var(--space-8);
+    font-size: var(--text-sm);
+  }
+
+  .dcta__findings li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-3);
+  }
+
+  .dcta__check {
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: var(--radius-full);
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    font-size: 11px;
+  }
+
+  /* ---- 結果イメージ ---- */
+
+  .dcta__preview {
+    display: grid;
+    gap: var(--space-5);
+    padding: var(--space-6);
+    background: var(--color-surface);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .dcta__preview-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .dcta__preview-title {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+  }
+
+  .dcta__sample {
+    padding: 2px var(--space-3);
+    background: var(--color-surface-muted);
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+
+  .dcta__score {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-4);
+  }
+
+  .dcta__score-label {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .dcta__score-value {
+    font-size: var(--text-5xl);
+    font-weight: var(--weight-bold);
+    line-height: var(--leading-none);
+    color: var(--color-primary);
+  }
+
+  .dcta__score-max {
+    font-size: var(--text-lg);
+    color: var(--color-text-muted);
+  }
+
+  .dcta__radar {
+    justify-self: center;
+    width: min(100%, 260px);
+    height: auto;
+  }
+
+  .dcta__phases {
+    display: grid;
+    gap: var(--space-2);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border);
+    font-size: var(--text-sm);
+  }
+
+  .dcta__phase {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  .dcta__phase-en {
+    font-weight: var(--weight-bold);
+  }
+
+  .dcta__phase-ja {
+    margin-left: var(--space-2);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+
+  .dcta__phase-score {
+    font-weight: var(--weight-bold);
+    color: var(--color-primary);
+  }
+
+  @media (min-width: 480px) {
+    .dcta__specs {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .dcta__inner {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: var(--space-16);
+    }
+
+    .dcta__preview {
+      padding: var(--space-8);
+    }
+  }
+</style>

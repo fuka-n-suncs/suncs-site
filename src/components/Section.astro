@@ -1,0 +1,90 @@
+---
+interface Props {
+  id?: string;
+  /** 英字の小見出し（SERVICE, CASE など） */
+  label?: string;
+  title?: string;
+  lead?: string;
+  tone?: 'default' | 'muted' | 'gradient' | 'inverse';
+  align?: 'start' | 'center';
+}
+
+const { id, label, title, lead, tone = 'default', align = 'start' } = Astro.props;
+---
+
+<section class:list={['section', `section--${tone}`]} id={id}>
+  <div class:list={['section__inner', 'container', `section__inner--${align}`]}>
+    {
+      (label || title || lead) && (
+        <header class="section__head">
+          {label && <p class="section__label">{label}</p>}
+          {title && <h2 class="section__title">{title}</h2>}
+          {lead && <p class="section__lead">{lead}</p>}
+        </header>
+      )
+    }
+    <slot />
+  </div>
+</section>
+
+<style>
+  .section {
+    padding-block: var(--space-section);
+  }
+
+  .section--muted {
+    background: var(--color-surface-muted);
+  }
+
+  .section--gradient {
+    background: var(--gradient-brand-soft);
+  }
+
+  .section--inverse {
+    color: var(--color-text-inverse);
+    background: var(--color-surface-inverse);
+  }
+
+  .section__inner--center {
+    text-align: center;
+  }
+
+  .section__head {
+    margin-bottom: var(--space-12);
+  }
+
+  .section__label {
+    margin-bottom: var(--space-3);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-primary);
+  }
+
+  .section--inverse .section__label {
+    color: rgb(255 255 255 / 0.8);
+  }
+
+  .section__title {
+    font-size: var(--text-4xl);
+    max-width: 24em;
+  }
+
+  .section__inner--center .section__title {
+    margin-inline: auto;
+  }
+
+  .section__lead {
+    margin-top: var(--space-5);
+    max-width: 42em;
+    color: var(--color-text-muted);
+  }
+
+  .section--inverse .section__lead {
+    color: rgb(255 255 255 / 0.8);
+  }
+
+  .section__inner--center .section__lead {
+    margin-inline: auto;
+  }
+</style>

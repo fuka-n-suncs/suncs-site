@@ -1,0 +1,272 @@
+---
+import {
+  NAV,
+  SITE_TITLE,
+  DIAGNOSIS_URL,
+  DIAGNOSIS_LABEL,
+  DIAGNOSIS_IS_EXTERNAL,
+} from '../consts';
+
+const path = Astro.url.pathname;
+const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`);
+---
+
+<header class="header">
+  <div class="header__inner container--wide">
+    <a class="header__logo" href="/" aria-label={`${SITE_TITLE} ホーム`}>
+      <img src="/logo-horizontal.svg" alt={SITE_TITLE} width="177" height="50" />
+    </a>
+
+    <nav class="header__nav" id="global-nav" aria-label="グローバルナビゲーション">
+      <ul class="header__list">
+        {
+          NAV.map((item) => (
+            <li>
+              <a
+                class="header__link"
+                href={item.href}
+                aria-current={isCurrent(item.href) ? 'page' : undefined}
+              >
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    {/* 主導線。SPでもドロワーに隠さず常時表示する */}
+    <a
+      class="header__cta"
+      href={DIAGNOSIS_URL}
+      target={DIAGNOSIS_IS_EXTERNAL ? '_blank' : undefined}
+      rel={DIAGNOSIS_IS_EXTERNAL ? 'noopener' : undefined}
+    >
+      {DIAGNOSIS_LABEL}
+    </a>
+
+    <button
+      class="header__toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="global-nav"
+      data-nav-toggle
+    >
+      <span class="header__bars" aria-hidden="true"></span>
+      <span class="visually-hidden">メニューを開く</span>
+    </button>
+  </div>
+</header>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('[data-nav-toggle]');
+  const header = document.querySelector<HTMLElement>('.header');
+
+  toggle?.addEventListener('click', () => {
+    const open = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!open));
+    header?.classList.toggle('header--open', !open);
+    document.body.style.overflow = !open ? 'hidden' : '';
+  });
+
+  // ナビを横並び表示する幅に広がったらメニュー状態をリセットする
+  const mq = window.matchMedia('(min-width: 880px)');
+  mq.addEventListener('change', (e) => {
+    if (!e.matches) return;
+    toggle?.setAttribute('aria-expanded', 'false');
+    header?.classList.remove('header--open');
+    document.body.style.overflow = '';
+  });
+</script>
+
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: var(--z-header);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .header__inner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    height: var(--header-height);
+    margin-inline: auto;
+    padding-inline: var(--container-gutter);
+  }
+
+  /* 主導線のCTA。オレンジ地に白文字はコントラスト2.1:1でAA不適合のため、
+     文字色は --color-text-on-accent（墨色・約7.9:1）を使う。 */
+  .header__cta {
+    display: inline-flex;
+    align-items: center;
+    margin-inline-start: auto;
+    min-height: 40px;
+    padding-inline: var(--space-4);
+    border-radius: var(--radius-full);
+    background: var(--color-accent);
+    color: var(--color-text-on-accent);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color var(--duration-fast) var(--easing-standard);
+  }
+
+  .header__cta:hover {
+    background: var(--color-accent-strong);
+    color: var(--color-text-on-accent);
+  }
+
+  /* 狭い画面ではラベルが2行になって高さを崩すため、文字を詰める */
+  @media (max-width: 400px) {
+    .header__cta {
+      padding-inline: var(--space-3);
+      font-size: var(--text-xs);
+    }
+  }
+
+  .header__logo {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .header__logo img {
+    width: auto;
+    height: 32px;
+  }
+
+  /* ---- SP: ハンバーガー + ドロワー ---- */
+
+  .header__toggle {
+    display: grid;
+    place-items: center;
+    width: var(--tap-target-min);
+    height: var(--tap-target-min);
+    margin-right: calc(var(--space-2) * -1);
+  }
+
+  .header__bars,
+  .header__bars::before,
+  .header__bars::after {
+    display: block;
+    width: 22px;
+    height: 2px;
+    background: var(--color-text);
+    transition: transform var(--duration-fast) var(--easing-standard);
+  }
+
+  .header__bars::before,
+  .header__bars::after {
+    content: '';
+    position: absolute;
+  }
+
+  .header__bars::before {
+    transform: translateY(-7px);
+  }
+
+  .header__bars::after {
+    transform: translateY(7px);
+  }
+
+  :global(.header--open) .header__bars {
+    background: transparent;
+  }
+
+  :global(.header--open) .header__bars::before {
+    transform: rotate(45deg);
+  }
+
+  :global(.header--open) .header__bars::after {
+    transform: rotate(-45deg);
+  }
+
+  .header__nav {
+    position: fixed;
+    inset: var(--header-height) 0 0;
+    z-index: var(--z-drawer);
+    padding: var(--space-4) var(--container-gutter) var(--space-12);
+    overflow-y: auto;
+    background: var(--color-surface);
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      opacity var(--duration-base) var(--easing-standard),
+      visibility var(--duration-base);
+  }
+
+  :global(.header--open) .header__nav {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .header__list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header__link {
+    display: flex;
+    align-items: center;
+    min-height: var(--tap-target-min);
+    padding-block: var(--space-2);
+    border-bottom: 1px solid var(--color-border);
+    font-weight: var(--weight-medium);
+    text-decoration: none;
+  }
+
+  /* ---- PC: 横並び ---- */
+
+  @media (min-width: 880px) {
+    .header__toggle {
+      display: none;
+    }
+
+    .header__nav {
+      position: static;
+      inset: auto;
+      margin-inline-start: auto;
+      padding: 0;
+      overflow: visible;
+      visibility: visible;
+      opacity: 1;
+      background: none;
+    }
+
+    .header__cta {
+      margin-inline-start: 0;
+    }
+
+    .header__list {
+      flex-direction: row;
+      align-items: center;
+      gap: var(--space-4);
+    }
+
+    .header__link {
+      min-height: 0;
+      padding-block: var(--space-1);
+      border-bottom: none;
+      font-size: var(--text-sm);
+    }
+
+    .header__link[aria-current='page'] {
+      color: var(--color-primary);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .header__logo img {
+      height: 38px;
+    }
+
+    .header__list {
+      gap: var(--space-6);
+    }
+  }
+</style>

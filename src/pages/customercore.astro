@@ -1,0 +1,214 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import keyVisual from '../assets/hero/customercore.png';
+import Section from '../components/Section.astro';
+import Button from '../components/Button.astro';
+import CaseCard from '../components/CaseCard.astro';
+import { DIAGNOSIS_URL, DIAGNOSIS_LABEL } from '../consts';
+
+const cases = (await getCollection('cases', ({ data }) => !data.draft))
+  .filter((entry) => entry.data.service === 'customercore')
+  .sort((a, b) => a.data.order - b.data.order);
+
+const assists = [
+  {
+    name: 'CS設計アシスト',
+    body: 'CS戦略の立案からチーム全体の業務最適化まで。何を目的に、誰が、どの順番で動くのかを決めます。',
+  },
+  {
+    name: 'CS業務アシスト',
+    body: '施策の実行・改善・仕組み化をトータルでサポート。手を動かしながら、回る形に落とし込みます。',
+  },
+  {
+    name: 'CS育成アシスト',
+    body: '研修設計から実践トレーニング、育成の仕組みづくりまで。人が入れ替わっても質が落ちない状態をつくります。',
+  },
+];
+
+/* 提供範囲。business-definition.md 4-1 の4象限をそのまま使う */
+const scope = [
+  {
+    axis: '実務 × コア',
+    items: ['問い合わせ対応', '顧客定例MTG', '新サービス提案', '初期設定・操作支援'],
+  },
+  {
+    axis: '実務 × ノンコア',
+    items: ['業務フロー作成', '他部署連携フロー構築', 'ツール導入支援', '育成計画策定'],
+  },
+  {
+    axis: '戦略 × コア',
+    items: ['顧客データ分析', '分析レポート作成', 'レポートに基づく戦略策定'],
+  },
+  {
+    axis: '戦略 × ノンコア',
+    items: [
+      '課題点の洗い出し',
+      '業務改善案の提案と実行支援',
+      'カスタマージャーニーマップ作成',
+      'KPI設計・改善',
+    ],
+  },
+];
+---
+
+<BaseLayout
+  title="CustomerCore"
+  description="国内B2B SaaS・サブスクリプション事業者向けのカスタマーサクセス支援。戦略立案から施策実行、育成までを一貫して支援し、支援終了後も自社でPDCAが回る仕組みを残します。"
+  image="/og/customercore.jpg"
+>
+  <PageHeader
+    title="CustomerCore"
+    lead="単なるサポート窓口ではなく、成果を生み出し続けるCS組織をつくる。SUNCSはコンサルティング・研修・業務代行を通じて、戦略の設計から現場の実行、仕組み化と人材育成までを一気通貫で支援します。属人化しない再現性のある仕組みと、自走できる人材の育成を両立させ、戦闘力の高いCS組織へ。"
+    image={keyVisual}
+    imagePosition="66% 22%"
+  />
+
+  <Section label="ASSIST" title="3つのアシストサービス">
+    <ul class="assists" data-reveal-stagger>
+      {
+        assists.map((assist) => (
+          <li class="assist">
+            <h3 class="assist__name">{assist.name}</h3>
+            <p class="assist__body">{assist.body}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  <Section
+    label="SCOPE"
+    title="どこまで手を動かすか"
+    lead="「実務か戦略か」「事業のコアかノンコアか」の2軸で、支援範囲を決めます。全部を任せることも、足りない部分だけを埋めることもできます。"
+    tone="muted"
+  >
+    <ul class="scope" data-reveal-stagger>
+      {
+        scope.map((group) => (
+          <li class="scope__group">
+            <h3 class="scope__axis">{group.axis}</h3>
+            <ul class="scope__items">
+              {group.items.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+          </li>
+        ))
+      }
+    </ul>
+  </Section>
+
+  {
+    cases.length > 0 && (
+      <Section label="CASE" title="CustomerCore の事例">
+        <ul class="cases" data-reveal-stagger>
+          {cases.map((entry) => (
+            <li>
+              <CaseCard entry={entry} />
+            </li>
+          ))}
+        </ul>
+        <p class="cases__note">
+          ※特定の顧客における導入前後の比較値。指標の定義・計測期間は事例ごとに異なります。
+          すべての組織で同様の成果を保証するものではありません。
+        </p>
+      </Section>
+    )
+  }
+
+  <Section tone="gradient" align="center">
+    <h2 class="cta__title">まず、自社の状態を知るところから</h2>
+    <p class="cta__lead">
+      設問に答えるだけで、現在のカスタマーサクセスの状態と、次に取るべき打ち手が分かります。
+    </p>
+    <div class="cta__actions">
+      <Button href={DIAGNOSIS_URL} variant="primary" size="lg">{DIAGNOSIS_LABEL}</Button>
+      <Button href="/contact" variant="secondary" size="lg">相談する</Button>
+    </div>
+  </Section>
+</BaseLayout>
+
+<style>
+  .assists,
+  .scope,
+  .cases {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .assist {
+    padding: var(--space-6);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+  }
+
+  .assist__name {
+    margin-bottom: var(--space-3);
+    font-size: var(--text-xl);
+    color: var(--color-primary);
+  }
+
+  .assist__body {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .scope__group {
+    padding: var(--space-6);
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+  }
+
+  .scope__axis {
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--color-border);
+    font-size: var(--text-base);
+    color: var(--color-primary);
+  }
+
+  .scope__items {
+    display: grid;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  .cases__note {
+    margin-top: var(--space-8);
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+
+  .cta__title {
+    font-size: var(--text-4xl);
+  }
+
+  .cta__lead {
+    margin: var(--space-5) auto var(--space-10);
+    max-width: 34em;
+  }
+
+  .cta__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-4);
+  }
+
+  @media (min-width: 768px) {
+    .assists,
+    .scope,
+    .cases {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .assists {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>

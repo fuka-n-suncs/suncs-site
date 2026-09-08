@@ -1,0 +1,157 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import MediaCard from '../../components/MediaCard.astro';
+import IconInterview from '../../components/icons/IconInterview.astro';
+import IconBlueprint from '../../components/icons/IconBlueprint.astro';
+import IconCycle from '../../components/icons/IconCycle.astro';
+import IconGlobe from '../../components/icons/IconGlobe.astro';
+import keyVisual from '../../assets/hero/media.png';
+import { MEDIA_CATEGORIES } from '../../consts';
+
+const articles = (await getCollection('media', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+
+const countOf = (slug: string) => articles.filter((a) => a.data.category === slug).length;
+
+/** カテゴリを一目で見分けられるようにするアイコン */
+const MEDIA_CATEGORY_ICON = {
+  interview: IconInterview,
+  'cs-design': IconBlueprint,
+  'cs-ops': IconCycle,
+  global: IconGlobe,
+} as const;
+---
+
+<BaseLayout
+  title="メディア"
+  description="カスタマーサクセスの設計・運用、海外展開について、実務で使える形にまとめた記事とお役立ち資料です。"
+  image="/og/media.jpg"
+>
+  <PageHeader
+    label="MEDIA"
+    title="メディア"
+    image={keyVisual}
+    imagePosition="50% 42%"
+    compact
+  />
+
+  <div class="container section">
+    <nav class="categories" aria-label="カテゴリ">
+      <ul class="categories__list">
+        {
+          MEDIA_CATEGORIES.map((category) => {
+            const CategoryIcon = MEDIA_CATEGORY_ICON[category.slug];
+            return (
+              <li>
+                <a class="categories__link" href={`/media/category/${category.slug}`}>
+                  <span class="categories__icon" aria-hidden="true">
+                    <CategoryIcon />
+                  </span>
+                  <span class="categories__label">{category.label}</span>
+                  <span class="categories__count tabular">{countOf(category.slug)}</span>
+                </a>
+              </li>
+            );
+          })
+        }
+      </ul>
+    </nav>
+
+    {
+      articles.length === 0 ? (
+        <p class="empty">
+          記事は準備中です。公開までは <a href="/cases">導入事例</a> をご覧ください。
+        </p>
+      ) : (
+        <ul class="grid" data-reveal-stagger>
+          {articles.map((entry) => (
+            <li>
+              <MediaCard entry={entry} />
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</BaseLayout>
+
+<style>
+  .categories__list {
+    display: grid;
+    gap: var(--space-4);
+    margin-bottom: var(--space-12);
+  }
+
+  .categories__link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-surface-muted);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    transition: background-color var(--duration-fast) var(--easing-standard);
+  }
+
+  .categories__link:hover {
+    background: var(--color-primary-subtle);
+  }
+
+  .categories__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    color: var(--color-primary);
+  }
+
+  .categories__icon :global(svg) {
+    width: 16px;
+    height: 16px;
+  }
+
+  .categories__label {
+    flex-grow: 1;
+    font-weight: var(--weight-bold);
+    font-size: var(--text-sm);
+  }
+
+  .categories__count {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .grid {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .empty {
+    padding-block: var(--space-16);
+    color: var(--color-text-muted);
+  }
+
+  @media (min-width: 768px) {
+    .categories__list {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .categories__list {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+</style>

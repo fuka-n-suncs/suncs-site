@@ -1,0 +1,25 @@
+---
+/** 「対談・インタビュー」カテゴリのアイコン。向き合う2つの吹き出し。 */
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<svg
+  class:list={['icon', className]}
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.6"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+  focusable="false"
+>
+  <rect x="2.5" y="4" width="13" height="9" rx="2.5"></rect>
+  <path d="M6.5 13v3.2l3.2-3.2"></path>
+  <rect x="8.5" y="10.5" width="13" height="9" rx="2.5"></rect>
+  <path d="M17.5 19.5v3.2l-3.2-3.2"></path>
+</svg>

@@ -1,0 +1,209 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import Section from '../components/Section.astro';
+import Button from '../components/Button.astro';
+import keyVisual from '../assets/hero/contact.png';
+import { DIAGNOSIS_URL, DIAGNOSIS_LABEL } from '../consts';
+
+const subjects = [
+  'CustomerCore（国内カスタマーサクセス支援）',
+  'GlobalCore（海外展開支援）',
+  '導入事例・実績について',
+  '取材・登壇のご依頼',
+  'その他',
+];
+---
+
+<BaseLayout
+  title="お問い合わせ"
+  description="株式会社SUNCSへのお問い合わせ。サービスのご相談、取材・登壇のご依頼を受け付けています。"
+  image="/og/contact.jpg"
+>
+  <PageHeader
+    label="CONTACT"
+    title="お問い合わせ"
+    image={keyVisual}
+    imagePosition="50% 44%"
+    compact
+  />
+
+  <Section>
+    <div class="layout">
+      <div class="form-area">
+        {/* 送信処理は Cloudflare Workers で実装する（Phase 2）。
+            現時点では未接続のため、フォームは無効化して連絡先を案内している。 */}
+        <form class="form" aria-describedby="form-status">
+          <p class="form__status" id="form-status">
+            現在このフォームは準備中です。お手数ですが、下記のメールアドレスへ直接ご連絡ください。
+          </p>
+
+          <div class="field">
+            <label class="field__label" for="company">会社名<span class="req">必須</span></label>
+            <input class="field__input" id="company" name="company" type="text" disabled />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="name">お名前<span class="req">必須</span></label>
+            <input class="field__input" id="name" name="name" type="text" disabled />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="email">メールアドレス<span class="req">必須</span></label>
+            <input class="field__input" id="email" name="email" type="email" disabled />
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="subject">お問い合わせ種別</label>
+            <select class="field__input" id="subject" name="subject" disabled>
+              {subjects.map((subject) => <option>{subject}</option>)}
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="body">お問い合わせ内容<span class="req">必須</span></label>
+            <textarea class="field__input" id="body" name="body" rows="6" disabled></textarea>
+          </div>
+
+          <p class="form__privacy">
+            送信いただいた個人情報は <a href="/privacy-policy">プライバシーポリシー</a>
+            に基づいて取り扱います。
+          </p>
+
+          <button class="form__submit" type="submit" disabled>送信する（準備中）</button>
+        </form>
+      </div>
+
+      <aside class="aside">
+        <div class="aside__block">
+          <h2 class="aside__title">直接のご連絡</h2>
+          <p class="aside__item">
+            <a href="mailto:info@sun-cs.co.jp">info@sun-cs.co.jp</a>
+          </p>
+          <p class="aside__item">
+            <a href="tel:07084427245">070-8442-7245</a><br />
+            <span class="aside__note">平日 9:00〜19:00</span>
+          </p>
+        </div>
+
+        <div class="aside__block aside__block--accent">
+          <h2 class="aside__title">まず状態を知りたい方へ</h2>
+          <p class="aside__note">
+            設問に答えるだけで、現在のカスタマーサクセスの状態が分かります。費用はかかりません。
+          </p>
+          <Button href={DIAGNOSIS_URL} variant="primary">{DIAGNOSIS_LABEL}</Button>
+        </div>
+      </aside>
+    </div>
+  </Section>
+</BaseLayout>
+
+<style>
+  .layout {
+    display: grid;
+    gap: var(--space-12);
+  }
+
+  .form {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .form__status {
+    padding: var(--space-4) var(--space-5);
+    background: var(--color-accent-subtle);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+  }
+
+  .field {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .field__label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+  }
+
+  .req {
+    padding: 1px var(--space-2);
+    background: var(--color-secondary-subtle);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-regular);
+    color: var(--color-text-muted);
+  }
+
+  .field__input {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+  }
+
+  .field__input:disabled {
+    background: var(--color-surface-muted);
+    cursor: not-allowed;
+  }
+
+  .form__privacy {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+
+  .form__submit {
+    justify-self: start;
+    min-height: var(--tap-target-min);
+    padding: var(--space-3) var(--space-8);
+    background: var(--color-accent);
+    border-radius: var(--radius-full);
+    font-weight: var(--weight-bold);
+    color: var(--color-text-on-accent);
+  }
+
+  .form__submit:disabled {
+    background: var(--color-border-strong);
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+  }
+
+  .aside {
+    display: grid;
+    gap: var(--space-6);
+    align-content: start;
+  }
+
+  .aside__block {
+    display: grid;
+    justify-items: start;
+    gap: var(--space-3);
+    padding: var(--space-6);
+    background: var(--color-surface-muted);
+    border-radius: var(--radius-lg);
+  }
+
+  .aside__block--accent {
+    background: var(--gradient-brand-soft);
+  }
+
+  .aside__title {
+    font-size: var(--text-lg);
+  }
+
+  .aside__note {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+  }
+
+  @media (min-width: 1024px) {
+    .layout {
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+      gap: var(--space-16);
+    }
+  }
+</style>

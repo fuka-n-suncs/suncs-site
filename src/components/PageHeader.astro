@@ -1,0 +1,221 @@
+---
+import { Image } from 'astro:assets';
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
+import SunBurst from './illustrations/SunBurst.astro';
+
+interface Props {
+  /** 見出し上の小さいラベル。タイトルと同じ語になる場合は省略する */
+  label?: string;
+  title: string;
+  lead?: string;
+  /** キービジュアル。未指定ならロゴモチーフの装飾を出す */
+  image?: ImageMetadata;
+  /**
+   * 画像のどこを見せるか（object-position）。
+   * 絵柄ごとに人物の位置が違うため、ページ側で指定する。
+   * 縦の値を大きくするほど画像の下側が見える。
+   */
+  imagePosition?: string;
+  /** 一覧・フォームなど、キービジュアルを控えめにしたいページ向けの低い高さ */
+  compact?: boolean;
+  /** タイトル横に添えるカテゴリアイコンなど */
+  icon?: AstroComponentFactory;
+}
+
+const {
+  label,
+  title,
+  lead,
+  image,
+  imagePosition = '62% center',
+  compact = false,
+  icon: Icon,
+} = Astro.props;
+---
+
+<header
+  class:list={['page-header', image && 'page-header--visual', compact && 'page-header--compact']}
+  style={image ? `--kv-position:${imagePosition}` : undefined}
+>
+  {
+    image ? (
+      /* 元画像自体がブランドの紺・ピンク・オレンジに近いグラデーションなので、
+         トップページ（白背景イラスト）ほど強い色調補正はかけない。
+         トップページと同じく、グラデーションマスクで文字側だけ徐々に消し、
+         イラスト側はくっきり見せる。メディア・事例に近い高さに収まるよう
+         object-fit: cover でトリミングする。 */
+      <div class="page-header__media" aria-hidden="true">
+        <Image
+          src={image}
+          alt=""
+          widths={[900, 1400, 1692]}
+          sizes="(min-width: 1024px) 70vw, 130vw"
+          loading="eager"
+          fetchpriority="high"
+        />
+      </div>
+    ) : (
+      <div class="page-header__deco" aria-hidden="true">
+        <SunBurst />
+      </div>
+    )
+  }
+
+  <div class="page-header__inner container">
+    <div class="page-header__copy">
+      {label && <p class="page-header__label">{label}</p>}
+      <h1 class="page-header__title">
+        {Icon && (
+          <span class="page-header__icon" aria-hidden="true">
+            <Icon />
+          </span>
+        )}
+        {title}
+      </h1>
+      {lead && <p class="page-header__lead">{lead}</p>}
+    </div>
+  </div>
+</header>
+
+<style>
+  .page-header {
+    position: relative;
+    overflow: hidden;
+    padding-block: var(--space-section-sm);
+    background: var(--gradient-brand-soft);
+  }
+
+  /* キービジュアルがある場合は下地を淡くする。-soft のままだと画像が濁る */
+  .page-header--visual {
+    background: var(--gradient-brand-wash);
+  }
+
+  .page-header__inner {
+    position: relative;
+    z-index: 1;
+  }
+
+  .page-header__label {
+    margin-bottom: var(--space-3);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-primary);
+  }
+
+  .page-header__title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--text-5xl);
+    color: var(--color-primary-strong);
+  }
+
+  .page-header__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.4em;
+    height: 1.4em;
+    flex-shrink: 0;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-full);
+    color: var(--color-primary);
+  }
+
+  .page-header__icon :global(svg) {
+    width: 55%;
+    height: 55%;
+  }
+
+  .page-header__lead {
+    margin-top: var(--space-5);
+    max-width: 42em;
+  }
+
+  /* ---- 装飾（画像なしのページ） ---- */
+
+  .page-header__deco {
+    position: absolute;
+    top: 50%;
+    right: -60px;
+    width: 260px;
+    translate: 0 -50%;
+    opacity: 0.28;
+    pointer-events: none;
+  }
+
+  /* ---- キービジュアル ----
+     メディア・事例ページ（画像なし）に近い高さに収めつつ、人物がはっきり見えるよう
+     最低限の高さは確保する。画像は inset: 0 で箱いっぱいに敷き、
+     object-fit: cover でトリミングして収める。 */
+
+  .page-header--visual {
+    display: flex;
+    align-items: center;
+    min-height: 420px;
+  }
+
+  /* 一覧・フォームページ向け。高さを約2/3に詰める */
+  .page-header--compact {
+    padding-block: var(--space-8);
+  }
+
+  .page-header--compact.page-header--visual {
+    min-height: 280px;
+  }
+
+  .page-header__media {
+    position: absolute;
+    inset: 0;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+    /* グラデーションで文字側だけ徐々に消し、イラスト側はくっきり見せる */
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 42%);
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 42%);
+  }
+
+  .page-header__media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: var(--kv-position);
+    /* 元画像は既にブランド寄りの色味なので、彩度・色相はほぼ保ったまま馴染ませる */
+    filter: saturate(0.92) brightness(1.04);
+  }
+
+  @media (min-width: 768px) {
+    .page-header__deco {
+      right: 4%;
+      width: 300px;
+      opacity: 0.4;
+    }
+  }
+
+  @media (min-width: 880px) {
+    /* ヘッダーのナビが横並びになる幅（880px）と揃える。ここがズレると
+       ナビは横並びなのにキービジュだけSP用の縦マスクになり、
+       文字とイラストが重なって見づらくなる。 */
+    .page-header--visual {
+      min-height: 360px;
+    }
+
+    .page-header--compact.page-header--visual {
+      min-height: 240px;
+    }
+
+    .page-header--visual .page-header__media {
+      -webkit-mask-image: linear-gradient(100deg, transparent 30%, #000 64%);
+      mask-image: linear-gradient(100deg, transparent 30%, #000 64%);
+    }
+
+    .page-header--visual .page-header__title {
+      max-width: 22em;
+    }
+
+    .page-header--visual .page-header__lead {
+      max-width: 26em;
+    }
+  }
+</style>

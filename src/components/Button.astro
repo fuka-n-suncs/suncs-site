@@ -1,0 +1,82 @@
+---
+interface Props {
+  href: string;
+  variant?: 'primary' | 'secondary' | 'ghost';
+  size?: 'md' | 'lg';
+  class?: string;
+}
+
+const { href, variant = 'primary', size = 'md', class: className } = Astro.props;
+const isExternal = /^https?:\/\//.test(href);
+---
+
+<a
+  class:list={['btn', `btn--${variant}`, `btn--${size}`, className]}
+  href={href}
+  target={isExternal ? '_blank' : undefined}
+  rel={isExternal ? 'noopener' : undefined}
+>
+  <span><slot /></span>
+</a>
+
+<style>
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: var(--tap-target-min);
+    padding: var(--space-3) var(--space-6);
+    border: 1px solid transparent;
+    border-radius: var(--radius-full);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    line-height: 1.4;
+    text-align: center;
+    text-decoration: none;
+    transition:
+      background-color var(--duration-fast) var(--easing-standard),
+      border-color var(--duration-fast) var(--easing-standard),
+      color var(--duration-fast) var(--easing-standard);
+  }
+
+  .btn--lg {
+    min-height: 56px;
+    padding-inline: var(--space-8);
+    font-size: var(--text-base);
+  }
+
+  /* オレンジ地に白文字はコントラスト2.1:1でAA不適合のため、文字は墨色にする */
+  .btn--primary {
+    background: var(--color-accent);
+    color: var(--color-text-on-accent);
+  }
+
+  .btn--primary:hover {
+    background: var(--color-accent-strong);
+    color: var(--color-text-on-accent);
+  }
+
+  .btn--secondary {
+    background: var(--color-surface);
+    border-color: var(--color-border-strong);
+    color: var(--color-text);
+  }
+
+  .btn--secondary:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .btn--ghost {
+    min-height: 0;
+    padding: 0;
+    border-radius: 0;
+    color: var(--color-primary);
+  }
+
+  .btn--ghost:hover {
+    color: var(--color-primary-strong);
+    text-decoration: underline;
+  }
+</style>

@@ -1,0 +1,112 @@
+---
+import '../styles/tokens.css';
+import '../styles/base.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_TITLE } from '../consts';
+
+interface Props {
+  title: string;
+  description?: string;
+  /** public/og/ 配下のパス。省略時は public/og/default.jpg */
+  image?: string;
+  /** OGPのog:type。記事ページは 'article' を渡す */
+  type?: 'website' | 'article';
+}
+
+const { title, description, image = '/og/default.jpg', type = 'website' } = Astro.props;
+const pageTitle = title === SITE_TITLE ? title : `${title} | ${SITE_TITLE}`;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImageUrl = new URL(image, Astro.site).href;
+
+/* 会社の基本情報のJSON-LD。business-definition.md 1章が唯一の参照元。
+   sameAs（SNSアカウント）は開設・確定次第ここに追加する。 */
+const organizationLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'SUNCS',
+  legalName: '株式会社SUNCS',
+  alternateName: 'SUNCS, inc.',
+  url: 'https://sun-cs.co.jp',
+  logo: new URL('/yoko_black_logo.svg', Astro.site).href,
+  foundingDate: '2023-12-27',
+  address: {
+    '@type': 'PostalAddress',
+    postalCode: '141-0033',
+    addressRegion: '東京都',
+    addressLocality: '品川区',
+    streetAddress: '西品川1-2-1 大崎ガーデンレジデンス',
+    addressCountry: 'JP',
+  },
+  contactPoint: {
+    '@type': 'ContactPoint',
+    email: 'info@sun-cs.co.jp',
+    telephone: '+81-70-8442-7245',
+    contactType: 'sales',
+    areaServed: 'JP',
+    availableLanguage: ['ja', 'en'],
+  },
+};
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    {/* OGP / Twitterカード。SNSシェア・チャットツールのリンクプレビュー用 */}
+    <meta property="og:type" content={type} />
+    <meta property="og:site_name" content={SITE_TITLE} />
+    <meta property="og:locale" content="ja_JP" />
+    <meta property="og:title" content={pageTitle} />
+    {description && <meta property="og:description" content={description} />}
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    {description && <meta name="twitter:description" content={description} />}
+    <meta name="twitter:image" content={ogImageUrl} />
+
+    {/* 構造化データ。会社の実体をAI・検索エンジンに機械可読な形で渡す */}
+    <script type="application/ld+json" set:html={JSON.stringify(organizationLd)} />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">本文へスキップ</a>
+    <Header />
+    {/* 幅と天地の余白は各セクション側で持つ。ここでは制約しない */}
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+
+    <script>
+      /* スクロールで要素をフェードインさせる。
+         JSが動く環境でのみ初期状態を非表示にするため、まず html にクラスを付ける。 */
+      const root = document.documentElement;
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      if (!reduced) {
+        root.classList.add('js-reveal');
+
+        const targets = document.querySelectorAll('[data-reveal], [data-reveal-stagger]');
+        const observer = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (!entry.isIntersecting) continue;
+              entry.target.classList.add('is-revealed');
+              observer.unobserve(entry.target);
+            }
+          },
+          { rootMargin: '0px 0px -12% 0px', threshold: 0.05 }
+        );
+
+        for (const target of targets) observer.observe(target);
+      }
+    </script>
+  </body>
+</html>

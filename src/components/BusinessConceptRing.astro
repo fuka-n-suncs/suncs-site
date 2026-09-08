@@ -1,0 +1,624 @@
+---
+/**
+ * ビジネスコンセプト（円環デザイン版）。CustomerCore と GlobalCore を
+ * 左右の正円で示し、円の内側の弧・ドット・矢印で中央のロゴへ収束する
+ * 流れを表現する。参考カンプ（文字を抜いたフレーム画像）のレイアウトに
+ * 合わせている。
+ */
+
+const icons: Record<string, string> = {
+  compass: '<circle cx="12" cy="12" r="9"/><path d="M15 9l-2 5-5 2 2-5 5-2z"/>',
+  process:
+    '<circle cx="5" cy="7" r="1"/><line x1="8.5" y1="7" x2="19" y2="7"/><circle cx="5" cy="12" r="1"/><line x1="8.5" y1="12" x2="19" y2="12"/><circle cx="5" cy="17" r="1"/><line x1="8.5" y1="17" x2="19" y2="17"/>',
+  person: '<circle cx="12" cy="8" r="3.2"/><path d="M5.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/>',
+  book: '<path d="M12 6.2c-1.8-1.2-4-1.6-6-1.2v13c2-.4 4.2 0 6 1.2 1.8-1.2 4-1.6 6-1.2v-13c-2-.4-4.2 0-6 1.2z"/><line x1="12" y1="6.2" x2="12" y2="19.2"/>',
+  robot:
+    '<rect x="6" y="9" width="12" height="9" rx="2.4"/><line x1="12" y1="9" x2="12" y2="5.3"/><circle cx="12" cy="4.2" r="1.1"/><circle cx="9.6" cy="13.5" r="1.1"/><circle cx="14.4" cy="13.5" r="1.1"/><line x1="4" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="20" y2="12"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><line x1="3" y1="12" x2="21" y2="12"/>',
+  flag: '<line x1="6" y1="4" x2="6" y2="20"/><path d="M6 5l11 3.2L6 11.4V5z"/>',
+  megaphone: '<path d="M4 10v4h3l7 4V6l-7 4H4z"/><path d="M17 10a3 3 0 0 1 0 4"/>',
+  network:
+    '<circle cx="12" cy="6" r="2.3"/><circle cx="6" cy="17.5" r="2.3"/><circle cx="18" cy="17.5" r="2.3"/><path d="M12 8.3v3.4M12 11.7l-5.3 3.8M12 11.7l5.3 3.8"/>',
+  trending: '<polyline points="4,16 10,10 14,14 20,7"/><polyline points="14,7 20,7 20,13"/>',
+  check: '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9"/>',
+  exchange:
+    '<circle cx="12" cy="12" r="6.5"/><path d="M2.5 8.5h4M2.5 8.5l1.8-1.8M2.5 8.5l1.8 1.8M21.5 15.5h-4M21.5 15.5l-1.8-1.8M21.5 15.5l-1.8 1.8"/>',
+  sparkle:
+    '<path d="M12 3l1.6 4.7L18 9l-4.4 1.5L12 15l-1.6-4.5L6 9l4.4-1.3L12 3z"/><path d="M19 15.5l.8 2.2L22 18.5l-2.2.8L19 21.5l-.8-2.2L16 18.5l2.2-.8L19 15.5z"/>',
+};
+
+const customerCore = {
+  name: 'CustomerCore',
+  items: [
+    { icon: 'compass', title: 'CS戦略設計', desc: '顧客中心の戦略・体制構築' },
+    { icon: 'process', title: '業務設計・改善', desc: 'プロセス最適化・効率化' },
+    { icon: 'book', title: 'ナレッジ・データ活用', desc: 'データに基づく意思決定とナレッジ基盤の構築' },
+    { icon: 'robot', title: 'AI活用・自動化', desc: 'AI・テクノロジーで生産性と体験価値を向上' },
+    { icon: 'person', title: '人材育成・組織開発', desc: 'スキル向上と組織の成長を支援' },
+  ],
+};
+
+const globalCore = {
+  name: 'GlobalCore',
+  items: [
+    { icon: 'globe', title: '市場調査・戦略立案', desc: '市場・顧客・競合を分析し、勝ち筋を設計' },
+    { icon: 'flag', title: '海外進出支援', desc: 'パートナー開拓・拠点設立・事業立ち上げを支援' },
+    { icon: 'megaphone', title: 'マーケティング支援', desc: '現地に合わせたブランド・プロモーション戦略の実行' },
+    { icon: 'network', title: 'CS構築支援', desc: 'グローバルでのCS体制・業務設計・運用を支援' },
+    { icon: 'trending', title: 'グローバル成長支援', desc: '事業拡大・スケールに向けた継続的な伴走支援' },
+  ],
+};
+
+const strengths = [
+  {
+    icon: 'check',
+    title: '実践から仕組みへ',
+    desc: 'ロープレや商談同席を通じて動ける状態にし、社内でPDCAが回る仕組みを残す',
+  },
+  {
+    icon: 'compass',
+    title: 'Day0から実行フェーズへ',
+    desc: '提案段階で業界・事業を学習し、「実行の期間」から始める',
+  },
+  {
+    icon: 'exchange',
+    title: '双方向のグローバル知見',
+    desc: '日本企業の海外進出と、海外企業の日本進出。両方向の実績を持つ',
+  },
+  {
+    icon: 'sparkle',
+    title: '人×AIの掛け合わせ',
+    desc: 'テクノロジーと人の実行力を組み合わせ、成果を出す仕組みをつくる',
+  },
+];
+
+const svg = (name: string) =>
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${icons[name]}</svg>`;
+---
+
+<div class="rc">
+  <div class="rc__side rc__side--left">
+    <div class="rc__circle">
+      <p class="rc__label">{customerCore.name}</p>
+
+      <svg class="rc__connector" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="rcChevronLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="var(--brand-navy)"></stop>
+            <stop offset="100%" stop-color="var(--brand-pink)"></stop>
+          </linearGradient>
+        </defs>
+        <path class="rc__arc" d="M78,14 Q94,50 78,86" />
+        <circle class="rc__dot" cx="80" cy="28" r="1.6" />
+        <circle class="rc__dot" cx="88" cy="50" r="1.6" />
+        <circle class="rc__dot" cx="80" cy="72" r="1.6" />
+        <path class="rc__chevron" fill="url(#rcChevronLeft)" d="M80,40 L95,50 L80,60 Z" />
+      </svg>
+
+      <ul class="rc__items">
+        {
+          customerCore.items.map((item) => (
+            <li class="rc__item" title={item.desc}>
+              <span class="rc__item-icon" set:html={svg(item.icon)} />
+              <span class="rc__item-text">
+                <span class="rc__item-title">{item.title}</span>
+                <span class="rc__item-desc">{item.desc}</span>
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+
+  <div class="rc__center">
+    <span class="rc__divider" aria-hidden="true"></span>
+    <div class="rc__mark">
+      <span class="rc__glow" aria-hidden="true"></span>
+      <img class="rc__logo" src="/favicon.svg" alt="SUNCS" width="140" height="140" loading="lazy" />
+    </div>
+    <p class="rc__wordmark">SUNCS</p>
+    <p class="rc__tagline">Beyond Limits, Beyond Expectations.</p>
+    <div class="rc__arrow" aria-hidden="true"></div>
+    <div class="rc__value">
+      <p class="rc__value-label">提供価値</p>
+      <p class="rc__value-text">顧客に選ばれ続ける仕組みを残し、事業の次の成長をともに実現します。</p>
+    </div>
+  </div>
+
+  <div class="rc__side rc__side--right">
+    <div class="rc__circle">
+      <p class="rc__label">{globalCore.name}</p>
+
+      <svg class="rc__connector" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="rcChevronRight" x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="var(--brand-orange)"></stop>
+            <stop offset="100%" stop-color="var(--brand-pink)"></stop>
+          </linearGradient>
+        </defs>
+        <path class="rc__arc" d="M22,14 Q6,50 22,86" />
+        <circle class="rc__dot" cx="20" cy="28" r="1.6" />
+        <circle class="rc__dot" cx="12" cy="50" r="1.6" />
+        <circle class="rc__dot" cx="20" cy="72" r="1.6" />
+        <path class="rc__chevron" fill="url(#rcChevronRight)" d="M20,40 L5,50 L20,60 Z" />
+      </svg>
+
+      <ul class="rc__items">
+        {
+          globalCore.items.map((item) => (
+            <li class="rc__item" title={item.desc}>
+              <span class="rc__item-icon" set:html={svg(item.icon)} />
+              <span class="rc__item-text">
+                <span class="rc__item-title">{item.title}</span>
+                <span class="rc__item-desc">{item.desc}</span>
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="rc__strengths">
+  <p class="rc__strengths-label">私たちの強み</p>
+  <ul class="rc__strengths-list">
+    {
+      strengths.map((item) => (
+        <li class="rc__strengths-item">
+          <span class="rc__strengths-icon" set:html={svg(item.icon)} />
+          <span class="rc__strengths-text">
+            <span class="rc__strengths-title">{item.title}</span>
+            <span class="rc__strengths-desc">{item.desc}</span>
+          </span>
+        </li>
+      ))
+    }
+  </ul>
+</div>
+
+<style>
+  /* このセクションだけSectionの余白を控えめなバリアントに絞る */
+  :global(section:has(.rc)) {
+    padding-block: var(--space-section-sm) !important;
+  }
+
+  :global(section:has(.rc) .section__head) {
+    margin-bottom: var(--space-8) !important;
+  }
+
+  .rc {
+    display: grid;
+    gap: var(--space-8);
+    text-align: left;
+  }
+
+  /* ---- 左右の円 ---- */
+
+  .rc__circle {
+    position: relative;
+    padding: var(--space-8) var(--space-6);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .rc__side--left .rc__circle {
+    background:
+      radial-gradient(130% 150% at 12% -10%, rgb(255 255 255 / 0.85), transparent 55%),
+      linear-gradient(165deg, var(--color-primary-subtle) 0%, #e4e5f1 100%);
+  }
+
+  .rc__side--right .rc__circle {
+    background:
+      radial-gradient(130% 150% at 88% -10%, rgb(255 255 255 / 0.85), transparent 55%),
+      linear-gradient(165deg, var(--color-accent-subtle) 0%, #fbe2c9 100%);
+  }
+
+  .rc__label {
+    display: block;
+    width: fit-content;
+    margin-inline: auto;
+    padding: var(--space-1) var(--space-4);
+    border-radius: var(--radius-full);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-wide);
+    text-align: center;
+  }
+
+  .rc__side--left .rc__label {
+    background: linear-gradient(120deg, var(--brand-navy), var(--color-primary-strong));
+    color: var(--color-text-inverse);
+    box-shadow: 0 8px 18px rgb(90 95 152 / 0.35);
+  }
+
+  .rc__side--right .rc__label {
+    background: linear-gradient(120deg, var(--brand-pink), var(--brand-orange));
+    color: var(--brand-ink);
+    box-shadow: 0 8px 18px rgb(243 160 99 / 0.4);
+  }
+
+  .rc__connector {
+    display: none;
+  }
+
+  .rc__items {
+    display: grid;
+    gap: var(--space-5);
+    margin-top: calc(var(--space-6) + 0.7cm);
+  }
+
+  .rc__item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .rc__item-icon {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-full);
+    background: linear-gradient(150deg, #fff 0%, var(--color-surface-subtle) 100%);
+    box-shadow:
+      var(--shadow-md),
+      inset 0 1px 0 rgb(255 255 255 / 0.8);
+  }
+
+  .rc__side--left .rc__item-icon {
+    color: var(--color-primary);
+  }
+
+  .rc__side--right .rc__item-icon {
+    color: var(--color-accent-strong);
+  }
+
+  .rc__item-icon :global(svg) {
+    width: 19px;
+    height: 19px;
+  }
+
+  .rc__item-text {
+    display: grid;
+    gap: 2px;
+  }
+
+  .rc__item-title {
+    font-weight: var(--weight-bold);
+    font-size: var(--text-sm);
+  }
+
+  .rc__item-desc {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+
+  /* ---- 中央 ---- */
+
+  .rc__center {
+    position: relative;
+    text-align: center;
+  }
+
+  .rc__divider {
+    display: none;
+  }
+
+  .rc__mark {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: clamp(84px, 12vw, 110px);
+    margin-inline: auto;
+  }
+
+  .rc__glow {
+    position: absolute;
+    inset: -22%;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--brand-pink) 50%, transparent) 0%,
+      color-mix(in srgb, var(--brand-orange) 32%, transparent) 45%,
+      transparent 72%
+    );
+    filter: blur(10px);
+    animation: rc-glow-pulse 5s var(--easing-standard) infinite;
+  }
+
+  .rc__logo {
+    position: relative;
+    width: 62%;
+    height: auto;
+    filter: drop-shadow(0 10px 18px rgb(90 95 152 / 0.28));
+    animation: rc-logo-float 6s var(--easing-standard) infinite;
+  }
+
+  .rc__wordmark {
+    margin-top: var(--space-2);
+    font-family: var(--font-display);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-wide);
+    color: var(--brand-ink);
+  }
+
+  .rc__tagline {
+    margin-top: var(--space-1);
+    font-family: var(--font-display);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-primary-strong);
+  }
+
+  @keyframes rc-glow-pulse {
+    0%,
+    100% {
+      opacity: 0.55;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.95;
+      transform: scale(1.1);
+    }
+  }
+
+  @keyframes rc-logo-float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rc__glow,
+    .rc__logo {
+      animation: none;
+    }
+  }
+
+  .rc__arrow {
+    width: 0;
+    height: 0;
+    margin: var(--space-3) auto;
+    border-top: 8px solid var(--color-border-strong);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+  }
+
+  .rc__value {
+    max-width: 26em;
+    margin-inline: auto;
+    padding: var(--space-3) var(--space-4);
+    background: linear-gradient(165deg, #fff 0%, var(--color-surface-muted) 100%);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+  }
+
+  .rc__value-label {
+    margin-bottom: var(--space-1);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-primary);
+  }
+
+  .rc__value-text {
+    font-size: var(--text-xs);
+    line-height: var(--leading-snug);
+  }
+
+  /* ---- 私たちの強み ---- */
+
+  .rc__strengths {
+    margin-top: var(--space-6);
+    padding: var(--space-5);
+    background: linear-gradient(180deg, #fff 0%, var(--color-surface-subtle) 100%);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    text-align: left;
+  }
+
+  .rc__strengths-label {
+    margin-bottom: var(--space-4);
+    font-size: var(--text-base);
+    font-weight: var(--weight-bold);
+    text-align: center;
+  }
+
+  .rc__strengths-list {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .rc__strengths-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .rc__strengths-icon {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-full);
+    background: linear-gradient(150deg, var(--color-primary-subtle) 0%, #e4e5f1 100%);
+    box-shadow:
+      var(--shadow-sm),
+      inset 0 1px 0 rgb(255 255 255 / 0.7);
+    color: var(--color-primary);
+  }
+
+  .rc__strengths-icon :global(svg) {
+    width: 18px;
+    height: 18px;
+  }
+
+  .rc__strengths-text {
+    display: grid;
+    gap: 2px;
+  }
+
+  .rc__strengths-title {
+    font-weight: var(--weight-bold);
+  }
+
+  .rc__strengths-desc {
+    font-size: var(--text-sm);
+    line-height: var(--leading-relaxed);
+    color: var(--color-text-muted);
+  }
+
+  /* ---- PC: 円環レイアウトへ切り替え ---- */
+
+  @media (min-width: 640px) {
+    .rc__strengths-list {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .rc {
+      grid-template-columns: 1fr 0.85fr 1fr;
+      align-items: stretch;
+      gap: var(--space-6);
+      overflow-x: clip;
+    }
+
+    .rc__side {
+      display: flex;
+    }
+
+    .rc__circle {
+      position: relative;
+      isolation: isolate;
+      /* 正円にすることで、内側のSVG装飾（弧・矢印）を0-100の座標系で
+         歪みなく正確に円の縁へ揃えられるようにする */
+      flex: 1;
+      width: 100%;
+      aspect-ratio: 1;
+      padding: 0;
+      overflow: hidden;
+      border-radius: 50%;
+      box-shadow: var(--shadow-xl);
+    }
+
+    .rc__label {
+      /* 円の外にはみ出さず、円の中に収まるよう下げる */
+      position: absolute;
+      top: 8%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      white-space: nowrap;
+    }
+
+    .rc__connector {
+      display: block;
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      overflow: visible;
+    }
+
+    .rc__arc {
+      fill: none;
+      stroke: rgb(255 255 255 / 0.7);
+      stroke-width: 0.6;
+    }
+
+    .rc__dot {
+      fill: rgb(255 255 255 / 0.9);
+    }
+
+    .rc__chevron {
+      /* fillはSVG側でグラデーション（円のブランドカラーと同系統）を指定済み。
+         輪郭線をなくし、ぼかしと半透明で円の色面に溶け込ませる */
+      stroke: none;
+      opacity: 0.55;
+      filter: blur(1.5px);
+    }
+
+    .rc__items {
+      /* 円の中心に来るよう、上・内側に寄せる */
+      position: absolute;
+      z-index: 2;
+      top: calc(18% + 0.7cm);
+      bottom: 22%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 0;
+      margin-top: 0;
+    }
+
+    .rc__side--left .rc__items {
+      left: 25%;
+      right: 28%;
+    }
+
+    .rc__side--right .rc__items {
+      left: 28%;
+      right: 25%;
+    }
+
+    .rc__item-desc {
+      display: none;
+    }
+
+    .rc__item-icon {
+      width: 32px;
+      height: 32px;
+    }
+
+    .rc__item-icon :global(svg) {
+      width: 16px;
+      height: 16px;
+    }
+
+    .rc__item-title {
+      font-size: var(--text-xs);
+      line-height: var(--leading-snug);
+    }
+
+    /* 中央上部の小さいグラデーションの区切り線（サンプルの意匠を再現） */
+    .rc__divider {
+      display: block;
+      width: 92px;
+      height: 3px;
+      margin: 0 auto var(--space-6);
+      border-radius: var(--radius-full);
+      background: linear-gradient(90deg, var(--brand-navy), var(--brand-pink), var(--brand-orange));
+    }
+
+    .rc__center {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .rc__strengths-list {
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-5);
+    }
+
+    .rc__strengths-item {
+      padding-inline-start: var(--space-5);
+      border-left: 1px solid var(--color-border);
+    }
+
+    .rc__strengths-item:first-child {
+      padding-inline-start: 0;
+      border-left: none;
+    }
+  }
+</style>

@@ -1,0 +1,87 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import PageHeader from '../../../components/PageHeader.astro';
+import MediaCard from '../../../components/MediaCard.astro';
+import Button from '../../../components/Button.astro';
+import IconInterview from '../../../components/icons/IconInterview.astro';
+import IconBlueprint from '../../../components/icons/IconBlueprint.astro';
+import IconCycle from '../../../components/icons/IconCycle.astro';
+import IconGlobe from '../../../components/icons/IconGlobe.astro';
+import { MEDIA_CATEGORIES } from '../../../consts';
+
+/** カテゴリを一目で見分けられるようにするアイコン */
+const MEDIA_CATEGORY_ICON = {
+  interview: IconInterview,
+  'cs-design': IconBlueprint,
+  'cs-ops': IconCycle,
+  global: IconGlobe,
+} as const;
+
+export const getStaticPaths = (async () => {
+  const articles = await getCollection('media', ({ data }) => !data.draft);
+  return MEDIA_CATEGORIES.map((category) => ({
+    params: { category: category.slug },
+    props: {
+      category,
+      articles: articles
+        .filter((a) => a.data.category === category.slug)
+        .sort((a, b) => b.data.date.getTime() - a.data.date.getTime()),
+    },
+  }));
+}) satisfies GetStaticPaths;
+
+const { category, articles } = Astro.props;
+---
+
+<BaseLayout title={category.label} description={category.description} image="/og/media.jpg">
+  <PageHeader
+    label="MEDIA"
+    title={category.label}
+    lead={category.description}
+    icon={MEDIA_CATEGORY_ICON[category.slug]}
+  />
+
+  <div class="container section">
+    {
+      articles.length === 0 ? (
+        <p class="empty">このカテゴリの記事は準備中です。</p>
+      ) : (
+        <ul class="grid" data-reveal-stagger>
+          {articles.map((entry) => (
+            <li>
+              <MediaCard entry={entry} />
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    <p class="back">
+      <Button href="/media" variant="secondary">メディア一覧へ</Button>
+    </p>
+  </div>
+</BaseLayout>
+
+<style>
+  .grid {
+    display: grid;
+    gap: var(--space-6);
+  }
+
+  .empty {
+    padding-block: var(--space-12);
+    color: var(--color-text-muted);
+  }
+
+  .back {
+    margin-top: var(--space-12);
+  }
+
+  @media (min-width: 768px) {
+    .grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>
