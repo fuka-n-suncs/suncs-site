@@ -1,4 +1,5 @@
 ---
+import { Image } from 'astro:assets';
 import type { CollectionEntry } from 'astro:content';
 import { NEWS_CATEGORY_LABEL } from '../consts';
 
@@ -25,14 +26,30 @@ const formatDate = (date: Date) =>
             target={isExternal ? '_blank' : undefined}
             rel={isExternal ? 'noopener' : undefined}
           >
-            <time class="news__date tabular" datetime={item.data.date.toISOString()}>
-              {formatDate(item.data.date)}
-            </time>
-            <span class="news__category">{NEWS_CATEGORY_LABEL[item.data.category]}</span>
-            <span class="news__title">
-              {item.data.title}
-              {isExternal && <span class="news__external" aria-label="外部サイトを開きます">↗</span>}
-            </span>
+            {
+              item.data.eyecatch && (
+                <div class="news__thumb">
+                  <Image
+                    src={item.data.eyecatch}
+                    alt={item.data.eyecatchAlt ?? ''}
+                    width={240}
+                    loading="lazy"
+                  />
+                </div>
+              )
+            }
+            <div class="news__body">
+              <p class="news__meta">
+                <time class="news__date tabular" datetime={item.data.date.toISOString()}>
+                  {formatDate(item.data.date)}
+                </time>
+                <span class="news__category">{NEWS_CATEGORY_LABEL[item.data.category]}</span>
+              </p>
+              <span class="news__title">
+                {item.data.title}
+                {isExternal && <span class="news__external" aria-label="外部サイトを開きます">↗</span>}
+              </span>
+            </div>
           </a>
         </li>
       );
@@ -50,9 +67,9 @@ const formatDate = (date: Date) =>
   }
 
   .news__link {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: var(--space-2) var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-5);
     padding-block: var(--space-5);
     text-decoration: none;
   }
@@ -62,13 +79,41 @@ const formatDate = (date: Date) =>
     text-decoration: underline;
   }
 
+  /* アイキャッチが無い記事も混ざるため、幅は固定してガタつかせない */
+  .news__thumb {
+    flex-shrink: 0;
+    width: 96px;
+    aspect-ratio: 1200 / 630;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    background: var(--color-surface-muted);
+  }
+
+  .news__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .news__body {
+    display: grid;
+    gap: var(--space-2);
+    min-width: 0;
+  }
+
+  .news__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
   .news__date {
     font-size: var(--text-sm);
     color: var(--color-text-muted);
   }
 
   .news__category {
-    justify-self: start;
     padding: 2px var(--space-3);
     border: 1px solid var(--color-border-strong);
     border-radius: var(--radius-full);
@@ -78,7 +123,6 @@ const formatDate = (date: Date) =>
   }
 
   .news__title {
-    grid-column: 1 / -1;
     font-weight: var(--weight-medium);
   }
 
@@ -89,14 +133,12 @@ const formatDate = (date: Date) =>
   }
 
   @media (min-width: 768px) {
-    .news__link {
-      grid-template-columns: 12em 10em 1fr;
-      align-items: baseline;
-      gap: var(--space-6);
+    .news__thumb {
+      width: 160px;
     }
 
-    .news__title {
-      grid-column: auto;
+    .news__meta {
+      gap: var(--space-4);
     }
   }
 </style>

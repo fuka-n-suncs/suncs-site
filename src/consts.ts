@@ -10,12 +10,11 @@ export const SITE_URL = 'https://sun-cs.co.jp';
 /**
  * CS戦闘力診断。サイト全体の主導線。
  *
- * 現在は Workers の暫定ドメインを指している。
- * sitemap-and-pages.md の方針では最終的に sun-cs.co.jp/diagnosis/ へ統合し、
- * 旧ドメインは301リダイレクトを1年維持する。
- * 移行時はこの定数を '/diagnosis' に変えるだけでサイト全体が切り替わる。
+ * 2026-09-08、Workers Routeで sun-cs.co.jp/diagnosis/* を cs-check Workerに
+ * ルーティングする設定を追加し、本体ドメインへ統合済み。
+ * 旧ドメイン（cs-check.sun-cs.workers.dev）は当面そのままアクセス可能。
  */
-export const DIAGNOSIS_URL = 'https://cs-check.sun-cs.workers.dev/';
+export const DIAGNOSIS_URL = '/diagnosis';
 export const DIAGNOSIS_LABEL = 'CS戦闘力診断（無料）';
 
 /** DIAGNOSIS_URL が外部ドメインを指している間だけ true */

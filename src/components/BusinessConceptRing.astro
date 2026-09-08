@@ -76,7 +76,7 @@ const svg = (name: string) =>
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${icons[name]}</svg>`;
 ---
 
-<div class="rc">
+<div class="rc" data-reveal>
   <div class="rc__side rc__side--left">
     <div class="rc__circle">
       <p class="rc__label">{customerCore.name}</p>
@@ -163,7 +163,7 @@ const svg = (name: string) =>
 
 <div class="rc__strengths">
   <p class="rc__strengths-label">私たちの強み</p>
-  <ul class="rc__strengths-list">
+  <ul class="rc__strengths-list" data-reveal-stagger>
     {
       strengths.map((item) => (
         <li class="rc__strengths-item">

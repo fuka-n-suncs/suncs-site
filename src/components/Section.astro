@@ -16,7 +16,7 @@ const { id, label, title, lead, tone = 'default', align = 'start' } = Astro.prop
   <div class:list={['section__inner', 'container', `section__inner--${align}`]}>
     {
       (label || title || lead) && (
-        <header class="section__head">
+        <header class="section__head" data-reveal>
           {label && <p class="section__label">{label}</p>}
           {title && <h2 class="section__title">{title}</h2>}
           {lead && <p class="section__lead">{lead}</p>}

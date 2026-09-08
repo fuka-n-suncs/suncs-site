@@ -107,7 +107,7 @@ const reasons = [
   </section>
 
   {/* 3. 導入企業ロゴ。キービジュアルに少し重ねた帯として流す */}
-  <div class="clients-band">
+  <div class="clients-band" data-reveal>
     <p class="clients-band__label">ご支援させていただいた企業</p>
     <ClientLogos />
   </div>
@@ -129,7 +129,7 @@ const reasons = [
     lead="うまくいかない理由は会社ごとに違います。SUNCSは3つの型に分けて捉え、それぞれ別の入り方をします。当てはまるものはありますか。"
     tone="muted"
   >
-    <ul class="patterns">
+    <ul class="patterns" data-reveal-stagger>
       {
         patterns.map((pattern) => (
           <li class="pattern">
@@ -141,7 +141,7 @@ const reasons = [
         ))
       }
     </ul>
-    <p class="patterns__cta">
+    <p class="patterns__cta" data-reveal>
       <Button href={DIAGNOSIS_URL} variant="ghost">
         50問でCSの実力を可視化する →
       </Button>
@@ -150,7 +150,7 @@ const reasons = [
 
   {/* 6. 選ばれる理由 */}
   <Section label="WHY SUNCS" title="選ばれる理由">
-    <ul class="reasons">
+    <ul class="reasons" data-reveal-stagger>
       {
         reasons.map((reason) => (
           <li class="reason">
@@ -174,7 +174,7 @@ const reasons = [
 
   {/* 7. サービス */}
   <Section id="services" label="SERVICE" title="サービス" tone="muted">
-    <div class="services">
+    <div class="services" data-reveal-stagger>
       <article class="service">
         <h3 class="service__name">CustomerCore</h3>
         <p class="service__target">国内B2B SaaS・サブスクリプション事業者向け</p>
@@ -207,7 +207,7 @@ const reasons = [
       </article>
     </div>
 
-    <aside class="playbook">
+    <aside class="playbook" data-reveal>
       <h3 class="playbook__name">Playbook<span class="playbook__tag">開発中</span></h3>
       <p>
         SUNCSが蓄積したカスタマーサクセスの型を、業務フローとして実装したシステムです。
@@ -218,10 +218,10 @@ const reasons = [
 
   {/* 8. 導入事例 */}
   <Section label="CASE" title="導入事例">
-    <ul class="cases">
+    <ul class="cases" data-reveal-stagger>
       {cases.map((entry) => <li><CaseCard entry={entry} /></li>)}
     </ul>
-    <p class="cases__more">
+    <p class="cases__more" data-reveal>
       <Button href="/cases" variant="secondary">すべての事例を見る</Button>
     </p>
     <p class="cases__note">
@@ -235,11 +235,13 @@ const reasons = [
 
   {/* 11. 会社紹介（10. メディア最新記事は Phase 3 で追加） */}
   <Section label="COMPANY" title="顧客の成長と笑顔を生み出す太陽になる">
-    <p class="company__lead">
-      SUNCSは、CLF PARTNERSグループの一員として、カスタマーサクセス支援と海外展開支援を手がけています。
-      「人×AIで最高のおもてなしを実現する」ことを目指しています。
-    </p>
-    <Button href="/company" variant="secondary">会社概要を見る</Button>
+    <div data-reveal>
+      <p class="company__lead">
+        SUNCSは、CLF PARTNERSグループの一員として、カスタマーサクセス支援と海外展開支援を手がけています。
+        「人×AIで最高のおもてなしを実現する」ことを目指しています。
+      </p>
+      <Button href="/company" variant="secondary">会社概要を見る</Button>
+    </div>
   </Section>
 </BaseLayout>
 

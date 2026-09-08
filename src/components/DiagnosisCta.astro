@@ -62,7 +62,7 @@ const scorePath = toPath(phases.map((p) => p.score / 100));
 
 <section class:list={['dcta', bare && 'dcta--bare']}>
   <div class="dcta__inner container">
-    <div class="dcta__copy">
+    <div class="dcta__copy" data-reveal>
       <p class="dcta__label">CS戦闘力診断</p>
       <h2 class="dcta__title">{title}</h2>
       <p class="dcta__lead">{lead}</p>
@@ -96,7 +96,7 @@ const scorePath = toPath(phases.map((p) => p.score / 100));
     </div>
 
     {/* 結果イメージ。実データではないことが分かるようバッジを付す */}
-    <figure class="dcta__preview">
+    <figure class="dcta__preview" data-reveal>
       <figcaption class="dcta__preview-head">
         <span class="dcta__preview-title">診断結果レポート</span>
         <span class="dcta__sample">サンプル</span>
