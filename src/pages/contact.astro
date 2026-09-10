@@ -31,38 +31,42 @@ const subjects = [
   <Section>
     <div class="layout" data-reveal-stagger>
       <div class="form-area">
-        {/* 送信処理は Cloudflare Workers で実装する（Phase 2）。
-            現時点では未接続のため、フォームは無効化して連絡先を案内している。 */}
-        <form class="form" aria-describedby="form-status">
-          <p class="form__status" id="form-status">
-            現在このフォームは準備中です。お手数ですが、下記のメールアドレスへ直接ご連絡ください。
-          </p>
+        <form class="form" id="contact-form" aria-describedby="form-status">
+          <p class="form__status" id="form-status" role="status" data-default-text
+            >必須項目をご入力のうえ、送信してください。</p
+          >
+
+          {/* ハニーポット。人間には見えないボット対策用の項目 */}
+          <div class="field field--hp" aria-hidden="true">
+            <label for="hp-website">Website</label>
+            <input id="hp-website" name="_hp" type="text" tabindex="-1" autocomplete="off" />
+          </div>
 
           <div class="field">
             <label class="field__label" for="company">会社名<span class="req">必須</span></label>
-            <input class="field__input" id="company" name="company" type="text" disabled />
+            <input class="field__input" id="company" name="company" type="text" required autocomplete="organization" />
           </div>
 
           <div class="field">
             <label class="field__label" for="name">お名前<span class="req">必須</span></label>
-            <input class="field__input" id="name" name="name" type="text" disabled />
+            <input class="field__input" id="name" name="name" type="text" required autocomplete="name" />
           </div>
 
           <div class="field">
             <label class="field__label" for="email">メールアドレス<span class="req">必須</span></label>
-            <input class="field__input" id="email" name="email" type="email" disabled />
+            <input class="field__input" id="email" name="email" type="email" required autocomplete="email" />
           </div>
 
           <div class="field">
             <label class="field__label" for="subject">お問い合わせ種別</label>
-            <select class="field__input" id="subject" name="subject" disabled>
+            <select class="field__input" id="subject" name="subject">
               {subjects.map((subject) => <option>{subject}</option>)}
             </select>
           </div>
 
           <div class="field">
             <label class="field__label" for="body">お問い合わせ内容<span class="req">必須</span></label>
-            <textarea class="field__input" id="body" name="body" rows="6" disabled></textarea>
+            <textarea class="field__input" id="body" name="body" rows="6" required></textarea>
           </div>
 
           <p class="form__privacy">
@@ -70,7 +74,7 @@ const subjects = [
             に基づいて取り扱います。
           </p>
 
-          <button class="form__submit" type="submit" disabled>送信する（準備中）</button>
+          <button class="form__submit" type="submit">送信する</button>
         </form>
       </div>
 
@@ -98,6 +102,62 @@ const subjects = [
   </Section>
 </BaseLayout>
 
+<script>
+  const form = document.querySelector<HTMLFormElement>('#contact-form');
+  const status = document.querySelector<HTMLParagraphElement>('#form-status');
+  const submitButton = form?.querySelector<HTMLButtonElement>('.form__submit');
+
+  const setStatus = (text: string, tone: 'default' | 'error' | 'success') => {
+    if (!status) return;
+    status.textContent = text;
+    status.classList.toggle('form__status--error', tone === 'error');
+    status.classList.toggle('form__status--success', tone === 'success');
+  };
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!form.reportValidity()) return;
+
+    const data = new FormData(form);
+    const payload = {
+      type: 'contact',
+      company: data.get('company'),
+      name: data.get('name'),
+      email: data.get('email'),
+      subject: data.get('subject'),
+      message: data.get('body'),
+      _hp: data.get('_hp'),
+      source_path: location.pathname,
+    };
+
+    submitButton?.setAttribute('disabled', 'true');
+    setStatus('送信中です…', 'default');
+
+    try {
+      const res = await fetch('/api/submit', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const result = await res.json();
+
+      if (!res.ok || !result.ok) {
+        throw new Error(result.error || 'submit_failed');
+      }
+
+      form.reset();
+      setStatus('送信しました。ご連絡ありがとうございます。担当より折り返しご連絡いたします。', 'success');
+    } catch (err) {
+      setStatus(
+        '送信に失敗しました。お手数ですが、下記のメールアドレスへ直接ご連絡ください。',
+        'error'
+      );
+    } finally {
+      submitButton?.removeAttribute('disabled');
+    }
+  });
+</script>
+
 <style>
   .layout {
     display: grid;
@@ -114,6 +174,27 @@ const subjects = [
     background: var(--color-accent-subtle);
     border-radius: var(--radius-md);
     font-size: var(--text-sm);
+  }
+
+  .form__status--success {
+    background: var(--color-primary-subtle, var(--color-accent-subtle));
+    color: var(--color-primary);
+    font-weight: var(--weight-bold);
+  }
+
+  .form__status--error {
+    background: var(--color-secondary-subtle);
+    color: var(--color-text);
+    font-weight: var(--weight-bold);
+  }
+
+  .field--hp {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
 
   .field {
