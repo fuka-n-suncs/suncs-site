@@ -10,8 +10,9 @@ import DiagnosisCta from '../components/DiagnosisCta.astro';
 import { Image } from 'astro:assets';
 
 /* キービジュアル。差し替えるときはこの1行のファイル名を変える。
-   元画像は白背景なので、mix-blend-mode: multiply で背景のブランドグラデーションに馴染ませている。 */
-import heroImage from '../assets/hero/hero-f.png';
+   この画像自体が空・雲のグラデーションを含む完成イラストなので multiply は使わない。
+   右側に寄せてクロップし、左端だけマスクで透明に抜いて背景の色味へ溶け込ませている。 */
+import heroImage from '../assets/hero/hero-i.png';
 import { SITE_TITLE, DIAGNOSIS_URL, DIAGNOSIS_LABEL } from '../consts';
 
 const cases = (await getCollection('cases', ({ data }) => !data.draft)).sort(
@@ -69,8 +70,9 @@ const reasons = [
 >
   {/* 2. キービジュアル */}
   <section class="hero">
-    {/* キービジュアル。白背景の不透明画像を multiply でブランドグラデーションに乗せ、
-        マスクで文字側へ向かって消していくことで、コピーの可読性を保つ。 */}
+    {/* キービジュアル。マスクで文字側へ向かって画像を消し、背景のブランド
+        グラデーションへ溶け込ませている。さらに文字の裏だけ白っぽいグラデーションを
+        重ね、画像を隠しすぎずに文字のコントラストを確保する（.hero__copy::before）。 */}
     <div class="hero__media" aria-hidden="true">
       <Image
         src={heroImage}
@@ -252,14 +254,21 @@ const reasons = [
     position: relative;
     overflow: hidden;
     padding-block: var(--space-section);
-    /* イラストを multiply で重ねるため、下地は淡いwash。
-       -soft だと色が乗りすぎて元画像の白が濁る。 */
-    background: var(--gradient-brand-wash);
+    /* イラストが紺〜ピンク〜青紫の寒色系のため、--gradient-brand-wash（3色目がオレンジ）だと
+       画像の右端で色味が食い違う。同じ3色のまま配分だけ変え、オレンジを弱めて画像に寄せる。 */
+    background: linear-gradient(
+      var(--gradient-angle),
+      color-mix(in srgb, var(--brand-navy) 20%, #fff) 0%,
+      color-mix(in srgb, var(--brand-pink) 16%, #fff) 55%,
+      color-mix(in srgb, var(--brand-navy) 12%, #fff) 100%
+    );
   }
 
   /* SP: イラストを下端に敷き、その上に文字を重ねる。
-     横長の絵なので object-fit: cover にすると拡大されすぎるため、
-     元の縦横比のまま幅いっぱいに置き、上へ向かってマスクで消す。 */
+     この画像は横長（2.4:1）で左31%ぶんが白い余白として作り込まれているが、
+     SPでは文字がイラストの上に来る（横に並ばない）ためその余白は不要。
+     object-fit: cover + 右寄せのクロップで余白を切り捨て、
+     ロケット・地球儀・海外の街並みだけを帯として見せる。 */
   .hero {
     display: grid;
     /* 下の余白は文字側で持つ。ここで空けるとイラストと文字が離れてしまう */
@@ -270,30 +279,28 @@ const reasons = [
     position: relative;
     z-index: 1;
     width: 100%;
-    /* イラストの高さは約56vw。文字がその上半分に重なるよう余白を確保する */
-    padding-bottom: 18vw;
+    padding-bottom: 58vw;
   }
 
   .hero__media {
     position: absolute;
     right: 0;
+    /* 帯の高さ。幅に対して縦横比2.4:1のイラストをこの高さでcoverすると
+       左の白い余白がちょうど切れる */
+    height: 62vw;
     bottom: 0;
     left: 0;
-    mix-blend-mode: multiply;
     pointer-events: none;
-    /* グラデーションで文字側だけ徐々に消し、イラスト側はくっきり見せる */
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 42%);
-    mask-image: linear-gradient(to bottom, transparent 0%, #000 42%);
+    /* イラスト上端のごく一部だけを薄く抜き、背景との継ぎ目を柔らげる */
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 10%);
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 10%);
   }
 
   .hero__media :global(img) {
     width: 100%;
-    height: auto;
-    /* 元画像は青紫が強いため、彩度を落として色相をわずかに暖色側へ寄せ、
-       ブランドの落ち着いた紺・ピンク・オレンジになじませる。
-       寄せすぎるとオレンジが濁って重く見えるため、変化量は控えめにする。
-       multiply で沈むぶんは明度で軽く戻す。 */
-    filter: saturate(0.85) hue-rotate(-4deg) brightness(1.06);
+    height: 100%;
+    object-fit: cover;
+    object-position: 100% 42%;
   }
 
   .hero__title {
@@ -610,19 +617,103 @@ const reasons = [
     .hero__media {
       position: absolute;
       inset: 0;
-      -webkit-mask-image: linear-gradient(100deg, transparent 30%, #000 64%);
-      mask-image: linear-gradient(100deg, transparent 30%, #000 64%);
+      /* SP側ルールの height: 62vw がそのまま残ると .hero の実高さ（620px等）
+         を無視してしまうため、ここで打ち消す */
+      height: auto;
+      /* この画像自体に「左31%が白い余白、そこから緩やかに色が乗る」という
+         フェードが最初から作り込まれている。右に寄せた箱でクロップする必要は
+         なく、全面に敷くだけでよい。CSS側のマスクは、画像のベタ白部分を
+         透明に抜いて背景のブランドグラデーションへ置き換える役割だけを持つ
+         （画像自体の不透明な白のままだと、背景の色つきグラデーションと
+         継ぎ目ができてしまうため）。画像自身のグラデーションと重なる形で
+         フェードさせるので、境目が線に見えにくい。 */
+      -webkit-mask-image: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(0, 0, 0, 0.3) 22%,
+        rgba(0, 0, 0, 0.6) 34%,
+        rgba(0, 0, 0, 0.85) 44%,
+        #000 55%
+      );
+      mask-image: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(0, 0, 0, 0.3) 22%,
+        rgba(0, 0, 0, 0.6) 34%,
+        rgba(0, 0, 0, 0.85) 44%,
+        #000 55%
+      );
     }
 
     .hero__media :global(img) {
       height: 100%;
+      width: 100%;
       object-fit: cover;
-      /* 縦を上寄りにして、指を差した手が切れないようにする */
-      object-position: 58% 26%;
+      /* 画面幅によってクロップが発生する場合も、白い余白（テキスト側）を
+         優先して残し、削れるのは右端の街並み側にする */
+      object-position: 25% 45%;
     }
 
     .hero__copy {
-      max-width: 52%;
+      position: relative;
+      /* 画像側に元から余白があるぶん、以前より広めに取れる。
+         ボタン2つが横並びで収まる最低幅（実測 約432px）を下回らないよう
+         max() で下限を持たせる。44%だけだと1024px前後の画面幅で
+         ボタンが縦に折り返ってしまう。 */
+      max-width: max(44%, 460px);
+    }
+
+    /* 文字の裏だけに白っぽいグラデーションを重ねる。画像とマスクの境目を
+       消すのではなく（境目自体は画像側のグラデーションに任せている）、
+       文字のすぐ後ろのコントラストだけを底上げするための層。
+       ★以前は左を -100vw まで伸ばしていたせいで、% ベースの色停止点が
+       ほぼ全部その巨大な余白側に食われてしまい、肝心のコピー本体の
+       右寄り（2行目の終わりなど）で白みがほとんど乗らないバグがあった。
+       calc(100% - Npx) でコピーの「右端そのもの」を基準点にし、
+       右にはみ出す420pxぶんだけをフェードアウト区間として使う。 */
+    .hero__copy::before {
+      content: '';
+      position: absolute;
+      inset: -3rem -420px -3rem -3rem;
+      z-index: -1;
+      pointer-events: none;
+      background: linear-gradient(
+        90deg,
+        transparent 0,
+        rgba(255, 255, 255, 0.82) 3rem,
+        rgba(255, 255, 255, 0.82) calc(100% - 420px),
+        rgba(255, 255, 255, 0.5) calc(100% - 260px),
+        rgba(255, 255, 255, 0.22) calc(100% - 130px),
+        transparent 100%
+      );
+      /* 横方向のグラデーションだけだと上下端が水平線としてくっきり出るため、
+         上下も別途フェードさせ、四角いカードに見えないようにする。
+         ★ここも%指定だと文章量でボックスの高さが変わるたびに壊れる
+         （25%/75%固定だと、コピーが長い＝ボックスが高い時にフェード帯が
+         ボタンの位置まで食い込み、ボタンの上下がくっきり切り替わって見えた）。
+         上下パディング分（3rem）に固定してフェードさせ、本文がどれだけ
+         伸びても常に文章とボタン全体が不透明ゾーンに収まるようにする。
+         上端は3remの短いフェードのままで良い（違和感なし）が、下端は
+         ボタンのすぐ下でイラストの彩度の高い部分と接するため、同じ長さだと
+         切れ目に見える。下だけ9remかけてゆっくり3段階でイーズさせる。 */
+      -webkit-mask-image: linear-gradient(
+        to bottom,
+        transparent 0,
+        #000 3rem,
+        #000 calc(100% - 9rem),
+        rgba(0, 0, 0, 0.6) calc(100% - 5rem),
+        rgba(0, 0, 0, 0.25) calc(100% - 2rem),
+        transparent 100%
+      );
+      mask-image: linear-gradient(
+        to bottom,
+        transparent 0,
+        #000 3rem,
+        #000 calc(100% - 9rem),
+        rgba(0, 0, 0, 0.6) calc(100% - 5rem),
+        rgba(0, 0, 0, 0.25) calc(100% - 2rem),
+        transparent 100%
+      );
     }
   }
 
