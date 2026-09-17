@@ -12,9 +12,11 @@ interface Props {
   image?: string;
   /** OGPのog:type。記事ページは 'article' を渡す */
   type?: 'website' | 'article';
+  /** trueの場合、canonicalの代わりにnoindexを出力する（404ページなど） */
+  noindex?: boolean;
 }
 
-const { title, description, image = '/og/default.jpg', type = 'website' } = Astro.props;
+const { title, description, image = '/og/default.jpg', type = 'website', noindex = false } = Astro.props;
 const pageTitle = title === SITE_TITLE ? title : `${title} | ${SITE_TITLE}`;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const ogImageUrl = new URL(image, Astro.site).href;
@@ -55,7 +57,7 @@ const organizationLd = {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{pageTitle}</title>
     {description && <meta name="description" content={description} />}
-    <link rel="canonical" href={canonical} />
+    {noindex ? <meta name="robots" content="noindex, follow" /> : <link rel="canonical" href={canonical} />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
     {/* OGP / Twitterカード。SNSシェア・チャットツールのリンクプレビュー用 */}
